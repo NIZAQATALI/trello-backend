@@ -4,7 +4,6 @@ const cors = require('cors');
 const express = require('express');
 dotenv.config({path:'./config.env'});
 const app = express()
-const DB='mongodb+srv://hafiznizaqatali:trellopassword@cluster0.w113wyo.mongodb.net/Mytrello?retryWrites=true&w=majority'
 mongoose.connect(process.env.MONGO_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
