@@ -3,7 +3,6 @@ const boardController = require('../Controllers/boardController');
 const route = express.Router();
 const auth = require("../Middlewares/auth");
 
-route.post('/:boardId/add-member',auth.verifyToken, boardController.addMember);
 route.put('/:boardId/update-background', auth.verifyToken, boardController.updateBackground);
 route.put('/:boardId/update-board-description',  auth.verifyToken,boardController.updateBoardDescription);
 route.put('/:boardId/update-board-title',auth.verifyToken, boardController.updateBoardTitle);

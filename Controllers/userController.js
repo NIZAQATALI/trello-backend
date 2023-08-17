@@ -64,8 +64,6 @@ const getUserWithMail = async(req,res) => {
     return res.status(200).send(dataTransferObject);
   })
 }
-
-
 // Update User
 const updateUser = async (req, res) => {
   const  id  = req.params.id
@@ -87,9 +85,6 @@ const updateUser = async (req, res) => {
     res.status(401).json("You can update only your account!");
   }
 };
-
-
-
  const sendotp = async (req, res) => {
   console.log(req.body)
   const _otp = Math.floor(100000 + Math.random() * 900000)
@@ -183,7 +178,6 @@ console.log(result);
 
 
 // }
-
 module.exports = {
   register,
   login,
