@@ -1,4 +1,6 @@
-
+const cardModel = require('../modals/cardModel');
+const listModel = require('../modals/listModel');
+const boardModel = require('../modals/boardModel');
 const labelsSeed = [
 	{ text: '', color: '#61bd4f', backColor: '#519839', selected: false },
 	{ text: '', color: '#f2d600', backColor: '#d9b51c', selected: false },
@@ -18,8 +20,17 @@ const createRandomHexColor = () => {
 	return hex.toString();
 };
 
-module.exports = {
+const validateCardOwners = async (card = null, list, board, user, isCreate = false) => {
 
+	console.log("user:",user)
+	const validate = isCreate ? true : list.cards.filter((item) => item.toString() === card._id.toString());
+	console.log("owner function", validate);
+	const validate2 = board.lists.filter((item) => item.toString() === list._id.toString());
+	const validate3 = user.boards.filter((item) => item.toString() === board._id.toString());
+	return validate && validate2 && validate3;
+};
+module.exports = {
 	labelsSeed,
 	createRandomHexColor,
+	validateCardOwners
 };

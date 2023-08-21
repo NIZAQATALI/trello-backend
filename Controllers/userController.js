@@ -67,10 +67,7 @@ const getUserWithMail = async(req,res) => {
 // Update User
 const updateUser = async (req, res) => {
   const  id  = req.params.id
-
-
   if (req.body.userId === id) {
-   
     try {
       if (req.body.password) {
         const salt = await bcrypt.genSalt(10);

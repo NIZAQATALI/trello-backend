@@ -3,7 +3,6 @@ const boardModel = require('../modals/boardModel');
 const userModel = require('../modals/userModel');
 const create = async (req, callback) => {
 	try {
-
 		const { title, backgroundImageLink, members } = req.body;
 		console.log(title)
 		// Create and save new board
@@ -55,18 +54,15 @@ const create = async (req, callback) => {
 				});
 			})
 		);
-
 		// Add created activity to activities of this board
 		newBoard.activity.unshift({ user: user._id, name: user.name, action: 'created this board', color: user.color });
-
 		// Save new board
 		newBoard.members = allMembers;
 		await newBoard.save();
-
 		return callback(false, newBoard);
 	} catch (error) {
 		return callback({
-			errMessage: 'Something went wrong  ye wala',
+			errMessage: '',
 			details: error.message,
 		});
 	}
@@ -93,7 +89,6 @@ const getAll = async (userId, callback) => {
 		return callback({ msg: 'Something went wrong', details: error.message });
 	}
 };
-
 const getById = async (id, callback) => {
 	try {
 		// Get board by id
@@ -103,7 +98,6 @@ const getById = async (id, callback) => {
 		return callback({ message: 'Something went wrong', details: error.message });
 	}
 };
-
 const getActivityById = async (id, callback) => {
 	try {
 		// Get board by id
@@ -131,7 +125,6 @@ const updateBoardTitle = async (boardId, title, user, callback) => {
 		return callback({ message: 'Something went wrong', details: error.message });
 	}
 };
-
 const updateBoardDescription = async (boardId, description, user, callback) => {
 	try {
 		// Get board by id
@@ -176,8 +169,44 @@ const updateBackground = async (id, background, isImage, user, callback) => {
 	}
 };
 
+const addMember = async (id, members, user, callback) => {
+	try {
+		// Get board by id
+		const board = await boardModel.findById(id);
+console.log("in the services")
+console.log("board", board);
+		// Set variables
+		await Promise.all(
+			members.map(async (member) => {
+				const newMember = await userModel.findOne({ email: member.email });
+				console.log("new member",newMember);
+				newMember.boards.push(board._id);
+				await newMember.save();
+				board.members.push({
+					user: newMember._id,
+					name: newMember.name,
+					surname: newMember.surname,
+					email: newMember.email,
+					color: newMember.color,
+					role: 'member',
+				});
+				//Add to board activity
+				board.activity.push({
+					user: user.id,
+					name: user.name,
+					action: `added user '${newMember.name}' to this board`,
+					color: user.color,
+				});
+			})
+		);
+		// Save changes
+		await board.save();
 
-
+		return callback(false, board.members);
+	} catch (error) {
+		return callback({ message: 'Something went wrong', details: error.message });
+	}
+};
 module.exports = {
 	create,
 	getAll,
@@ -186,5 +215,5 @@ module.exports = {
 	updateBoardTitle,
 	updateBoardDescription,
 	updateBackground,
-
+	addMember,
 };
