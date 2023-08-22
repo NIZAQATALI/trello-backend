@@ -49,7 +49,6 @@ const getAll = async (boardId, callback) => {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-
 const deleteById = async (listId, boardId, user, callback) => {
 	try {
 		// Get board to check the parent of list is this board
@@ -61,10 +60,8 @@ const deleteById = async (listId, boardId, user, callback) => {
 		// Validate whether the owner of the board is the user who sent the request.
 		if (!user.boards.filter((board) => board === boardId))
 			return callback({ errMessage: 'You cannot delete a list that does not hosted by your boards' });
-
 		// Delete the list
 		const result = await listModel.findByIdAndDelete(listId);
-
 		// Delete the list from lists of board
 		board.lists = board.lists.filter((list) => list.toString() !== listId);
 		// Add activity log to board
@@ -82,9 +79,9 @@ const deleteById = async (listId, boardId, user, callback) => {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-
 const updateCardOrder = async (boardId, sourceId, destinationId, destinationIndex, cardId, user, callback) => {
 	try {
+		 console.log("in the service of card update order")
 		// Validate the parent board of the lists
 		const board = await boardModel.findById(boardId);
 		let validate = board.lists.filter((list) => list.id === sourceId);
@@ -104,7 +101,6 @@ const updateCardOrder = async (boardId, sourceId, destinationId, destinationInde
 		temp.splice(destinationIndex, 0, cardId);
 		destinationList.cards = temp;
 		await destinationList.save();
-
 		// Add card activity
 		if (sourceId !== destinationId)
 			card.activities.unshift({
@@ -137,7 +133,6 @@ const updateListOrder = async (boardId, sourceIndex, destinationIndex, listId, c
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-
 const updateListTitle = async (listId, boardId, user, title, callback) => {
 	try {
 		// Get board to check the parent of list is this board
@@ -146,15 +141,12 @@ const updateListTitle = async (listId, boardId, user, title, callback) => {
 		// Validate the parent of the list
 		const validate = board.lists.filter((list) => list.id === listId);
 		if (!validate) return callback({ errMessage: 'List or board informations are wrong' });
-
 		// Validate whether the owner of the board is the user who sent the request.
 		if (!user.boards.filter((board) => board === boardId))
-			return callback({ errMessage: 'You cannot delete a list that does not hosted by your boards' });
-
+			return callback({ errMessage: 'You cannot delete a list that does not hosted by your boards'});
 		// Change title of list
 		list.title = title;
 		await list.save();
-
 		return callback(false, { message: 'Success' });
 	} catch (error) {
 		return callback({ errMessage: 'Something went wrong', details: error.message });

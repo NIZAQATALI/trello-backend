@@ -8,6 +8,7 @@ route.put('/:boardId/update-board-description',  auth.verifyToken,boardControlle
 route.put('/:boardId/update-board-title',auth.verifyToken, boardController.updateBoardTitle);
 route.post('/create',auth.verifyToken, boardController.create);
 route.get('/:id', auth.verifyToken, boardController.getById);
+route.delete('/:boardId',auth.verifyToken, boardController.deleteById);
 route.get('/:id/activity', auth.verifyToken, boardController.getActivityById);
 route.get('/',  auth.verifyToken, boardController.getAll);
 

@@ -102,6 +102,21 @@ const addMember = async (req, res) => {
 		return res.status(200).send(result);
 	});
 };
+const deleteById = async (req, res) => {
+	// deconstruct the params
+	const {  boardId } = req.params;
+	const user = req.user;
+	console.log(user);
+	// Validate the  boardId
+	if (!(boardId)) return res.status(400).send({ errMessage: ' board undefined' });
+	await boardService.deleteById( boardId, user, (err, result) => {
+		if (err) return res.status(500).send(err);
+		return res.status(200).send(result);
+	});
+};
+
+
+
 module.exports = {
 	create,
 	getAll,
@@ -111,4 +126,5 @@ module.exports = {
 	updateBoardDescription,
 	updateBackground,
 	addMember,
+	deleteById
 };

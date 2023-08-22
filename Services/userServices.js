@@ -1,8 +1,6 @@
 const userModel = require("../modals/userModel");
 const { createRandomHexColor } = require("./helperMethods");
-
 const register = async (user, callback) => {
-  
   const newUser = userModel({ ...user, color:createRandomHexColor()});
   await newUser
     .save()
@@ -95,7 +93,6 @@ const submitOtp = async (otp, newPassword) => {
     throw { code: 500, message: 'Server error' };
   }
 };
-
 module.exports = {
   register,
   login,

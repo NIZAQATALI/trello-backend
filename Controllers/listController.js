@@ -48,6 +48,7 @@ const updateCardOrder = async (req, res) => {
 	const { boardId, sourceId, destinationId, destinationIndex, cardId } = req.body;
 	const user = req.user;
 	// Validate the params
+	
 	if (!(boardId && sourceId && destinationId && cardId))
 		return res.status(400).send({ errMessage: 'All parameters not provided' });
 

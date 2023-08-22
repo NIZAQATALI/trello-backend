@@ -1,6 +1,8 @@
 const { findOne } = require('../modals/boardModel');
 const boardModel = require('../modals/boardModel');
 const userModel = require('../modals/userModel');
+const cardModel = require('../modals/cardModel');
+const listModel = require('../modals/listModel');
 const create = async (req, callback) => {
 	try {
 		const { title, backgroundImageLink, members } = req.body;
@@ -37,8 +39,7 @@ const create = async (req, callback) => {
 				const newMember = await userModel.findOne({ email: member.email });
 				newMember.boards.push(newBoard._id);
 			 	await newMember.save();
-			
-				allMembers.push({
+				 allMembers.push({
 					user: newMember._id,
 					name: newMember.name,
 					surname: newMember.surname,
@@ -207,6 +208,35 @@ console.log("board", board);
 		return callback({ message: 'Something went wrong', details: error.message });
 	}
 };
+
+const deleteById = async ( boardId, user, callback) => {
+	try {
+		console.log(boardId);
+		// Get board to check the parent of list is this board
+		const board = await boardModel.findById(boardId);
+		console.log(board);
+		// Validate whether the owner of the board is the user who sent the request.
+	     
+		if (!user.boards.filter((board) => board === boardId))
+			return callback({ errMessage: 'You cannot delete a list that does not hosted by your boards' });
+		// Delete the  booard
+		const result = await boardModel.findByIdAndDelete(boardId);
+		// Delete the list from lists of board  // Delete the board from boards of user
+		
+                 user.boards =user.boards.filter((board) =>board.toString() !==boardId);
+		
+		
+		user.save();
+// Delete all the cards associated with the lists on this board
+		const listIds = board.lists.map(list => list.toString());
+		await cardModel.deleteMany({ owner: { $in: listIds } });
+// Delete all lists in the board
+		await listModel.deleteMany({ owner: boardId });
+		return callback(false, result);
+	} catch (error) {
+		return callback({ errMessage: 'Something went wrong', details: error.message });
+	}
+};
 module.exports = {
 	create,
 	getAll,
@@ -216,4 +246,5 @@ module.exports = {
 	updateBoardDescription,
 	updateBackground,
 	addMember,
+	deleteById
 };
