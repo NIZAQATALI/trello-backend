@@ -9,7 +9,7 @@ mongoose.connect(process.env.MONGO_URL, {
     useUnifiedTopology: true,
    // useCreateIndex: true,
    // useFindAndModify:true,
-  }).then(console.log("Connected to MongoDB  "))
+  }).then(console.log("Connection Sucessfully"))
   .catch((err) => console.log(err));
   const userRoute = require("./routes/userRoute");
   const boardRoute = require("./routes/boardRoute");
@@ -25,9 +25,9 @@ app.use('/list', listRoute);
 app.use('/card', cardRoute);
 //app.use('/card', cardRoute);
     app.get('/about', function (req, res) {
-        console.log('in the middle ware');
+        console.log('in the middleWare');
           res.send('Hello World  of About')
         })
   app.listen(5000,()=>{
-    console.log("Backend is running with MongoDb Database");
+    console.log(" Server is running on port 5000");
 });

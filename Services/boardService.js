@@ -108,7 +108,6 @@ const getActivityById = async (id, callback) => {
 		return callback({ message: 'Something went wrong', details: error.message });
 	}
 };
-
 const updateBoardTitle = async (boardId, title, user, callback) => {
 	try {
 		// Get board by id

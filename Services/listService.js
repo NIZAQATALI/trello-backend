@@ -77,7 +77,7 @@ const deleteById = async (listId, boardId, user, callback) => {
 		return callback(false, result);
 	} catch (error) {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
-	}
+	}	
 };
 const updateCardOrder = async (boardId, sourceId, destinationId, destinationIndex, cardId, user, callback) => {
 	try {
@@ -122,12 +122,10 @@ const updateListOrder = async (boardId, sourceIndex, destinationIndex, listId, c
 		const board = await boardModel.findById(boardId);
 		let validate = board.lists.filter((list) => list.id === listId);
 		if (!validate) return callback({ errMessage: 'List or board informations are wrong' });
-
 		// Change list order
 		board.lists.splice(sourceIndex, 1);
 		board.lists.splice(destinationIndex, 0, listId);
 		await board.save();
-
 		return callback(false, { message: 'Success' });
 	} catch (error) {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
