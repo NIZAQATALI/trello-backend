@@ -41,6 +41,18 @@ const update = async (req, res) => {
 		return res.status(200).send(result);
 	});
 };
+const deleteById = async (req, res) => {
+	// deconstruct the params
+	const user = req.user;
+	const { boardId, listId, cardId } = req.params;
+
+	// Call the card service
+	await cardService.deleteById(cardId, listId, boardId, user, (err, result) => {
+		if (err) return res.status(500).send(err);
+		return res.status(200).send(result);
+	});
+};
+
 const addComment = async (req, res) => {
 	// Get params
 	const user = req.user;
