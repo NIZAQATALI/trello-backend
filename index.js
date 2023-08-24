@@ -16,6 +16,7 @@ mongoose.connect(process.env.MONGO_URL, {
   const listRoute = require("./routes/listRoute");
   const cardRoute = require("./routes/cardRoute");
  app.use(express.json())
+ 
  app.use(cors());
  //   app.use("/api/auth", authRoute);
   //  app.use("/api/users", userRoute);

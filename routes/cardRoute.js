@@ -5,4 +5,7 @@ const auth = require("../Middlewares/auth");
 router.post('/create',  auth.verifyToken, cardController.create);
 router.get('/:boardId/:listId/:cardId',  auth.verifyToken, cardController.getCard);
 router.put('/:boardId/:listId/:cardId',  auth.verifyToken,  cardController.update);
+router.post('/:boardId/:listId/:cardId/add-comment',  auth.verifyToken, cardController.addComment);
+router.put('/:boardId/:listId/:cardId/:commentId', auth.verifyToken, cardController.updateComment);
+router.delete('/:boardId/:listId/:cardId/:commentId', auth.verifyToken, cardController.deleteComment);
 module.exports = router;
