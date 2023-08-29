@@ -15,6 +15,7 @@ mongoose.connect(process.env.MONGO_URL, {
   const boardRoute = require("./routes/boardRoute");
   const listRoute = require("./routes/listRoute");
   const cardRoute = require("./routes/cardRoute");
+  const workspaceRoute = require("./routes/workspaceRoute");
  app.use(express.json())
  
  app.use(cors());
@@ -24,7 +25,7 @@ mongoose.connect(process.env.MONGO_URL, {
 app.use('/board', boardRoute);
 app.use('/list', listRoute);
 app.use('/card', cardRoute);
-//app.use('/card', cardRoute);
+app.use('/workspace', workspaceRoute);
     app.get('/about', function (req, res) {
         console.log('in the middleWare');
           res.send('Hello World  of About')

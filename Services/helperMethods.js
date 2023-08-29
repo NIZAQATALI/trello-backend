@@ -21,13 +21,15 @@ const createRandomHexColor = () => {
 };
 
 const validateCardOwners = async (card = null, list, board, user, isCreate = false) => {
-
-	console.log("user:",user)
+	console.log("userssss:",user);
 	const validate = isCreate ? true : list.cards.filter((item) => item.toString() === card._id.toString());
-	console.log("owner function", validate);
 	const validate2 = board.lists.filter((item) => item.toString() === list._id.toString());
+	console.log("validate",validate);
+	console.log("validate2",validate2);
 	const validate3 = user.boards.filter((item) => item.toString() === board._id.toString());
+	console.log("validate3",validate3);
 	return validate && validate2 && validate3;
+
 };
 module.exports = {
 	labelsSeed,

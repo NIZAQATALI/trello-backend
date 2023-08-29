@@ -2,7 +2,7 @@
 const listModel = require('../modals/listModel');
 const boardModel = require('../modals/boardModel');
 const cardModel = require('../modals/cardModel');
-const create = async (model, user, callback) => {
+const create = async ( model, user, callback) => {
 	try {
 		// Create new List
 		const tempList = await listModel(model);
@@ -21,7 +21,6 @@ const create = async (model, user, callback) => {
 		});
 		// Save changes
 		ownerBoard.save();
-
 		// Return new list
 		return callback(false, newList);
 	} catch (error) {
@@ -43,7 +42,6 @@ const getAll = async (boardId, callback) => {
 		let responseObject = board.lists.map((listId) => {
 			return lists.filter((listObject) => listObject._id.toString() === listId.toString())[0];
 		});
-
 		return callback(false, responseObject);
 	} catch (error) {
 		return callback({ errMessage: 'Something went wrong', details: error.message });

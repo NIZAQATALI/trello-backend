@@ -42,13 +42,16 @@ const getCard = async (cardId, listId, boardId, user, callback) => {
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
-
+		
+console.log("getcard service")
+console.log("this was board",board);
 		// Validate owner
 		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
 		if (!validate) {
+		
 			errMessage: 'You dont have permission to update this card';
 		}
-
+		console.log(" valid")
 		let returnObject = { ...card._doc, listTitle: list.title, listId: listId, boardId: boardId };
 
 		return callback(false, returnObject);

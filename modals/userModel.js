@@ -24,10 +24,10 @@ const userSchema = mongoose.Schema({
 	color: {
 		type: String,
 	},
-	boards: [
+	workspaces: [
 		{
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'board',
+			ref: 'workspace',
 		},
 	],
 	otp:{

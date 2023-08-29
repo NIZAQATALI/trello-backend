@@ -1,0 +1,68 @@
+const workspaceService = require('../Services/workspaceService.js');
+const create = async (req, res) => {
+	const { name, type, description } = req.body;
+	if (!(name && type ))
+		return res.status(400).send({ errMessage: 'name and/or type cannot be null' });
+	await workspaceService.create(req, (err, result) => {
+		if (err) return res.status(500).send(err);
+		result.__v = undefined;
+		return res.status(201).send(result);
+	});
+};
+const getWorkspaces= async (req, res) => {
+    console.log(req.user);
+	const userId = req.user.id;
+	await workspaceService.getWorkspaces(userId, (err, result) => {
+		if (err) return res.status(400).send(err);
+		return res.status(200).send(result);
+	});
+};
+const getWorkspace = async (req, res) => {
+	const { workspaceId } = req.params;
+	// Validate whether params.id is in the user's boards or not
+	const validate = req.user.workspaces.filter((workspace) => workspace === workspaceId);
+	if (!validate)
+		return res.status(400).send({ errMessage: 'You can not show this workspace, you are not a member or owner!' });
+	// Call the service
+	await workspaceService.getWorkspace(workspaceId, (err, result) => {
+		if (err) return res.status(400).send(err);
+		return res.status(200).send(result);
+	});
+};
+const updateWorkspaceDescription = async (req, res) => {
+	// Validate whether params.id is in the user's boards or not
+	const validate = req.user.workspaces.filter((Wspace) => Wspace === req.params.id);
+	if (!validate)
+		return res
+			.status(400)
+			.send({ errMessage: 'You can not change description of this board, you are not a member or owner!' });
+	const { workspaceId } = req.params;
+	const { description } = req.body;
+	// Call the service
+	await workspaceService.updateWorkspaceDescription(workspaceId, description, req.user, (err, result) => {
+		if (err) return res.status(400).send(err);
+		return res.status(200).send(result);
+	});
+};
+const updateWorkspaceName = async (req, res) => {
+	// Validate whether params.id is in the user's boards or not
+	const validate = req.user.workspaces.filter((Wspace) => Wspace === req.params.id);
+	if (!validate)
+		return res
+			.status(400)
+			.send({ errMessage: 'You can not change background of this board, you are not a member or owner!' });
+	const { workspaceId } = req.params;
+	const { name } = req.body;
+	// Call the service
+	await workspaceService.updateWorkspaceName(workspaceId, name,req.user, (err, result) => {
+		if (err) return res.status(400).send(err);
+		return res.status(200).send(result);
+	});
+};
+module.exports = {
+	create,
+	getWorkspaces,
+    getWorkspace,
+	updateWorkspaceDescription,
+	updateWorkspaceName
+};

@@ -20,21 +20,18 @@ const getCard = async (req, res) => {
 	// Get params
 	console.log("gerCard Of controller")
 	const user = req.user;
-	console.log("user:",user)
-	const { boardId, listId, cardId } = req.params;
 
+	const { boardId, listId, cardId } = req.params;
 	// Call the card service
 	await cardService.getCard(cardId, listId, boardId, user, (err, result) => {
 		if (err) return res.status(500).send(err);
 		return res.status(200).send(result);
 	});
 };
-
 const update = async (req, res) => {
 	// Get params
 	const user = req.user;
 	const { boardId, listId, cardId } = req.params;
-
 	// Call the card service
 	await cardService.update(cardId, listId, boardId, user, req.body, (err, result) => {
 		if (err) return res.status(500).send(err);
@@ -45,14 +42,12 @@ const deleteById = async (req, res) => {
 	// deconstruct the params
 	const user = req.user;
 	const { boardId, listId, cardId } = req.params;
-
 	// Call the card service
 	await cardService.deleteById(cardId, listId, boardId, user, (err, result) => {
 		if (err) return res.status(500).send(err);
 		return res.status(200).send(result);
 	});
 };
-
 const addComment = async (req, res) => {
 	// Get params
 	const user = req.user;
@@ -64,7 +59,6 @@ const addComment = async (req, res) => {
 		return res.status(200).send(result);
 	});
 };
-
 const updateComment = async (req, res) => {
 	// Get params
 	const user = req.user;
@@ -76,7 +70,6 @@ const updateComment = async (req, res) => {
 		return res.status(200).send(result);
 	});
 };
-
 const deleteComment = async (req, res) => {
 	// Get params
 	const user = req.user;
@@ -223,7 +216,6 @@ const setChecklistItemCompleted = async (req, res) => {
 		}
 	);
 };
-
 const setChecklistItemText = async (req, res) => {
 	// Get params
 	const user = req.user;

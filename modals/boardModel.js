@@ -71,15 +71,21 @@ const boardSchema = mongoose.Schema(
 				}
 			},
 		],
+		
 		lists: [
 			{
 				type: mongoose.Schema.Types.ObjectId,
 				ref: 'list',
 			},
 		],
+
 		description: {
 			type: String,
 			default: '',
+		},
+		owner: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'workspace',
 		},
 	},
 	{ timestamps: true }
