@@ -2,16 +2,19 @@ const cardModel = require('../modals/cardModel');
 const listModel = require('../modals/listModel');
 const boardModel = require('../modals/boardModel');
 const userModel = require('../modals/userModel');
+const workspaceModel = require('../modals/workspaceModel');
 const helperMethods = require('./helperMethods');
-const create = async (title, listId, boardId, user, callback) => {
+const create = async ( workspaceId,title, listId, boardId, user, callback) => {
 	try {
-		// Get list and board
+		// Get list and board and workspace
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
+		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate the ownership
-		const validate = await helperMethods.validateCardOwners(null, list, board, user, true);
+		const validate = await helperMethods.validateCardOwners(null, list, board, workspace, true);
+		console.log(validate,"uuuuuuuuuu");
 		if (!validate) return callback({ errMessage: 'You dont have permission to add card to this list or board' });
-    console.log(validate);
+         console.log(validate);
 		// Create new card
 		const card = await cardModel({ title: title });
 		card.owner = listId;
@@ -36,17 +39,16 @@ const create = async (title, listId, boardId, user, callback) => {
 		return callback({ errMessage: 'Something went wrong  this one', details: error.message });
 	}
 };
-const getCard = async (cardId, listId, boardId, user, callback) => {
+const getCard = async ( workspaceId,cardId, listId, boardId, user, callback) => {
 	try {
 		// Get models
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
-		
+		const workspace = await workspaceModel.findById(workspaceId);
 console.log("getcard service")
-console.log("this was board",board);
 		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
+		const validate = await helperMethods.validateCardOwners( card, list,  board,workspace , user, false);
 		if (!validate) {
 		
 			errMessage: 'You dont have permission to update this card';
@@ -95,42 +97,38 @@ const deleteById = async (cardId, listId, boardId, user, callback) => {
 	}
 };
 
-const update = async (cardId, listId, boardId, user, updatedObj, callback) => {
+const update = async (cardId, listId, boardId, workspaceId, user, updatedObj, callback) => {
 	try {
 		// Get models
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
-
+		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
+		const validate = await helperMethods.validateCardOwners(card, list, board, workspace, user, false);
 		if (!validate) {
 			errMessage: 'You dont have permission to update this card';
 		}
-
 		//Update card
 		await card.updateOne(updatedObj);
 		await card.save();
-
 		return callback(false, { message: 'Success!' });
 	} catch (error) {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-
-const addComment = async (cardId, listId, boardId, user, body, callback) => {
+const addComment = async (cardId, listId, boardId, workspaceId, user, body, callback) => {
 	try {
 		// Get models
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
-
+		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
+		const validate = await helperMethods.validateCardOwners(card, list, board,workspace, user, false);
 		if (!validate) {
 			errMessage: 'You dont have permission to update this card';
 		}
-
 		//Add comment
 		card.activities.unshift({
 			text: body.text,
@@ -156,20 +154,20 @@ const addComment = async (cardId, listId, boardId, user, body, callback) => {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-
-const updateComment = async (cardId, listId, boardId, commentId, user, body, callback) => {
+const updateComment = async (cardId, listId, boardId, commentId, workspaceId, user, body, callback) => {
 	try {
 		// Get models
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
-
+		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
+		const validate = await helperMethods.validateCardOwners(card, list, board, workspace, user, false);
 		if (!validate) {
 			errMessage: 'You dont have permission to update this card';
 		}
-
+		 console.log("activities of this card:",card.activities)
+		 console.log("activity id:",commentId)
 		//Update card
 		card.activities = card.activities.map((activity) => {
 			if (activity._id.toString() === commentId.toString()) {
@@ -181,7 +179,6 @@ const updateComment = async (cardId, listId, boardId, commentId, user, body, cal
 			return activity;
 		});
 		await card.save();
-
 		//Add to board activity
 		board.activity.unshift({
 			user: user._id,
@@ -193,30 +190,26 @@ const updateComment = async (cardId, listId, boardId, commentId, user, body, cal
 			cardTitle: card.title,
 		});
 		board.save();
-
 		return callback(false, { message: 'Success!' });
 	} catch (error) {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-
-const deleteComment = async (cardId, listId, boardId, commentId, user, callback) => {
+const deleteComment = async (cardId, listId, boardId, commentId, workspaceId,user, callback) => {
 	try {
 		// Get models
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
-
+		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
+		const validate = await helperMethods.validateCardOwners(card, list, board,workspace, user, false);
 		if (!validate) {
 			errMessage: 'You dont have permission to update this card';
 		}
-
 		//Delete card
 		card.activities = card.activities.filter((activity) => activity._id.toString() !== commentId.toString());
 		await card.save();
-
 		//Add to board activity
 		board.activity.unshift({
 			user: user._id,
@@ -232,20 +225,19 @@ const deleteComment = async (cardId, listId, boardId, commentId, user, callback)
 	}
 };
 
-const addMember = async (cardId, listId, boardId, user, memberId, callback) => {
+const addMember = async (cardId, listId, boardId, workspaceId, user, memberId, callback) => {
 	try {
 		// Get models
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
 		const member = await userModel.findById(memberId);
-
+		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
+		const validate = await helperMethods.validateCardOwners(card, list, board, workspace, user, false);
 		if (!validate) {
 			errMessage: 'You dont have permission to add member this card';
 		}
-
 		//Add member
 		card.members.unshift({
 			user: member._id,
@@ -253,7 +245,6 @@ const addMember = async (cardId, listId, boardId, user, memberId, callback) => {
 			color: member.color,
 		});
 		await card.save();
-
 		//Add to board activity
 		board.activity.unshift({
 			user: user._id,
@@ -269,15 +260,15 @@ const addMember = async (cardId, listId, boardId, user, memberId, callback) => {
 	}
 };
 
-const deleteMember = async (cardId, listId, boardId, user, memberId, callback) => {
+const deleteMember = async (cardId, listId, boardId,  workspaceId,user, memberId, callback) => {
 	try {
 		// Get models
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
-
+		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
+		const validate = await helperMethods.validateCardOwners(card, list, board,workspace, user, false);
 		if (!validate) {
 			errMessage: 'You dont have permission to add member this card';
 		}
@@ -306,20 +297,18 @@ const deleteMember = async (cardId, listId, boardId, user, memberId, callback) =
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-
-const createLabel = async (cardId, listId, boardId, user, label, callback) => {
+const createLabel = async (cardId, listId, boardId,workspaceId, user, label, callback) => {
 	try {
 		// Get models
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
-
+		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
+		const validate = await helperMethods.validateCardOwners(card, list, board, workspace,user, false);
 		if (!validate) {
 			errMessage: 'You dont have permission to add label this card';
 		}
-
 		//Add label
 		card.labels.unshift({
 			text: label.text,
@@ -337,15 +326,15 @@ const createLabel = async (cardId, listId, boardId, user, label, callback) => {
 	}
 };
 
-const updateLabel = async (cardId, listId, boardId, labelId, user, label, callback) => {
+const updateLabel = async (cardId, listId, boardId, labelId, user,workspaceId, label, callback) => {
 	try {
 		// Get models
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
-
+		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
+		const validate = await helperMethods.validateCardOwners(card, list, board,workspace, user, false);
 		if (!validate) {
 			errMessage: 'You dont have permission to update this card';
 		}
@@ -367,15 +356,15 @@ const updateLabel = async (cardId, listId, boardId, labelId, user, label, callba
 	}
 };
 
-const deleteLabel = async (cardId, listId, boardId, labelId, user, callback) => {
+const deleteLabel = async (cardId, listId, boardId, labelId, workspaceId, user, callback) => {
 	try {
 		// Get models
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
-
+		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
+		const validate = await helperMethods.validateCardOwners(card, list, board,workspace, user, false);
 		if (!validate) {
 			errMessage: 'You dont have permission to delete this label';
 		}
@@ -390,15 +379,15 @@ const deleteLabel = async (cardId, listId, boardId, labelId, user, callback) => 
 	}
 };
 
-const updateLabelSelection = async (cardId, listId, boardId, labelId, user, selected, callback) => {
+const updateLabelSelection = async (cardId, listId, boardId, labelId, workspaceId, user, selected, callback) => {
 	try {
 		// Get models
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
-
+		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
+		const validate = await helperMethods.validateCardOwners(card, list, board, workspace,user, false);
 		if (!validate) {
 			errMessage: 'You dont have permission to update this card';
 		}
@@ -418,15 +407,15 @@ const updateLabelSelection = async (cardId, listId, boardId, labelId, user, sele
 	}
 };
 
-const createChecklist = async (cardId, listId, boardId, user, title, callback) => {
+const createChecklist = async (cardId, listId, boardId, workspaceId, user, title, callback) => {
 	try {
 		// Get models
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
-
+		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
+		const validate = await helperMethods.validateCardOwners(card, list, board,workspace, user, false);
 		if (!validate) {
 			errMessage: 'You dont have permission to add Checklist this card';
 		}
@@ -454,26 +443,26 @@ const createChecklist = async (cardId, listId, boardId, user, title, callback) =
 	}
 };
 
-const deleteChecklist = async (cardId, listId, boardId, checklistId, user, callback) => {
+const deleteChecklist = async (cardId, listId, boardId, checklistId, workspaceId, user, callback) => {
 	try {
 		// Get models
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
-
+		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
+		const validate = await helperMethods.validateCardOwners(card, list, board, workspace, user, false);
 		if (!validate) {
 			errMessage: 'You dont have permission to delete this checklist';
 		}
 		let cl = card.checklists.filter((l) => l._id.toString() === checklistId.toString());
-		//Delete checklist
+		//Delete checklistl
 		card.checklists = card.checklists.filter((list) => list._id.toString() !== checklistId.toString());
 		await card.save();
 
 		//Add to board activity
 		board.activity.unshift({
-			user: user._id,
+			user: user._id,  
 			name: user.name,
 			action: `removed '${cl.title}' from ${card.title}`,
 			color: user.color,

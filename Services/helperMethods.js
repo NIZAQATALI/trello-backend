@@ -20,13 +20,13 @@ const createRandomHexColor = () => {
 	return hex.toString();
 };
 
-const validateCardOwners = async (card = null, list, board, user, isCreate = false) => {
-	console.log("userssss:",user);
-	const validate = isCreate ? true : list.cards.filter((item) => item.toString() === card._id.toString());
-	const validate2 = board.lists.filter((item) => item.toString() === list._id.toString());
+const validateCardOwners = async (card = null, list, board,workspace, isCreate = false) => {
+	console.log("userssss:",workspace.boards);
+	const validate = isCreate ? true : list.cards.find((item) => item.toString() === card._id.toString());
+	const validate2 = board.lists.find((item) => item.toString() === list._id.toString().toString());
 	console.log("validate",validate);
 	console.log("validate2",validate2);
-	const validate3 = user.boards.filter((item) => item.toString() === board._id.toString());
+	const validate3 = workspace.boards.find((item) => item.toString() === board._id.toString());
 	console.log("validate3",validate3);
 	return validate && validate2 && validate3;
 

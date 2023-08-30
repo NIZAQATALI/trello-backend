@@ -38,7 +38,14 @@ const getAll = async (req, res) => {
 };
 const deleteById = async (req, res) => {
 	// deconstruct the params
-	const { listId, boardId } = req.params;
+	const { workspaceId, listId, boardId } = req.params;
+ // Find the workspace object based on the matching workspaceId
+ const workspace = req.user.workspaces.find(workspace => workspace.toString() === workspaceId);
+ if (!workspace) {
+	 return res 
+		 .status(400)
+		 .send({ errMessage: 'Workspace not found or you do not have access to it.' });
+ }
 	const user = req.user;
 	// Validate the listId and boardId
 	if (!(listId && boardId)) return res.status(400).send({ errMessage: 'List or board undefined' });
@@ -52,14 +59,11 @@ const updateCardOrder = async (req, res) => {
 	const { boardId, sourceId, destinationId, destinationIndex, cardId } = req.body;
 	const user = req.user;
 	// Validate the params
-	
 	if (!(boardId && sourceId && destinationId && cardId))
 		return res.status(400).send({ errMessage: 'All parameters not provided' });
-
 	// Validate the owner of board
 	const validate = user.boards.filter((board) => board === boardId);
 	if (!validate) return res.status(403).send({ errMessage: 'You cannot edit the board that you hasnt' });
-
 	// Call the service
 	await listService.updateCardOrder(boardId, sourceId, destinationId, destinationIndex, cardId, user, (err, result) => {
 		if (err) return res.status(500).send(err);
@@ -67,25 +71,37 @@ const updateCardOrder = async (req, res) => {
 	});
 };
 const updateListOrder = async (req, res) => {
-	// deconstruct the params
-	const { boardId, sourceIndex, destinationIndex, listId } = req.body;
+	// deconstruct the payload
+	const {  workspaceId,boardId, sourceIndex, destinationIndex, listId } = req.body;
+	console.log("these are values",workspaceId,boardId, sourceIndex, destinationIndex, listId )
 	const user = req.user;
-
 	// Validate the params
-	if (!(boardId && sourceIndex != undefined && destinationIndex != undefined && listId))
+	if (!(workspaceId, boardId && sourceIndex != undefined && destinationIndex != undefined && listId))
 		return res.status(400).send({ errMessage: 'All parameters not provided' });
-	// Validate the owner of board
-	const validate = user.boards.filter((board) => board === boardId);
-	if (!validate) return res.status(403).send({ errMessage: 'You cannot edit the board that you hasnt' });
+	 // Find the workspace object based on the matching workspaceId
+	 const workspace = req.user.workspaces.find(workspace => workspace.toString() === workspaceId);
+	 if (!workspace) {
+		 return res 
+			 .status(400)
+			 .send({ errMessage: 'Workspace not found or you do not have access to it.' });
+	 }
 	// Call the service
-	await listService.updateListOrder(boardId, sourceIndex, destinationIndex, listId, (err, result) => {
+	await listService.updateListOrder( workspaceId,boardId, sourceIndex, destinationIndex, listId, (err, result) => {
 		if (err) return res.status(500).send(err);
 		return res.status(200).send(result);
 	});
 };
 const updateListTitle = async (req, res) => {
 	// deconstruct the params
-	const { listId, boardId } = req.params;
+	const { workspaceId, listId, boardId } = req.params;
+	// Find the workspace object based on the matching workspaceId
+	const workspace = req.user.workspaces.find(workspace => workspace.toString() === workspaceId);
+	if (!workspace) {
+		return res 
+			.status(400)
+			.send({ errMessage: 'Workspace not found or you do not have access to it.' });
+	}
+   
 	const user = req.user;
 	const {title} = req.body;
 	// Validate the listId and boardId

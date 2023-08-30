@@ -10,7 +10,6 @@ const register = async  (req, res) => {
     return res
       .status("400")
       .send({ errMessage: "Please fill all required areas!" });
-   
   const salt = bcrypt.genSaltSync(10);
   const hashedPassword = bcrypt.hashSync(password, salt);
   req.body.password = hashedPassword;

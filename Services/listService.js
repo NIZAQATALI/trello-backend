@@ -36,7 +36,6 @@ const getAll = async (boardId, callback) => {
 			.find({ owner: { $in: boardId } })
 			.populate({ path: 'cards' }) /* { path: 'cards', select: 'title' }) */
 			.exec();
-
 		// Order the lists
 		const board = await boardModel.findById(boardId);
 		let responseObject = board.lists.map((listId) => {
@@ -51,13 +50,26 @@ const deleteById = async (listId, boardId, user, callback) => {
 	try {
 		// Get board to check the parent of list is this board
 		const board = await boardModel.findById(boardId);
+		console.log("this is board", board.lists);
 		// Validate the parent of the list
-		const validate = board.lists.filter((list) => list.id === listId);
-		if (!validate) return callback({ errMessage: 'List or board informations are wrong' });
+		console.log("this is list",listId);
+ // Find the workspace object based on the matching workspaceId
+ const validate= board.lists.find(list => list.toString() === listId);
+console.log(validate);
+ if (!validate) {
+	const errorMessage = 'List information is not correct or list not found';
+	return callback({ errMessage: errorMessage });
+}
+ 
+ // Rest of your code if the list is found
+ 
+		console.log("hi there")
+		// const validate = board.lists.filter((list) => list.id.toString() === listId);
+		// console.log(validate,"validate")
+		// console.log(typeof validate," type of variable")
+		// if (validate === false){ return callback({ errMessage: 'List or board informations are wrong' });}
+		// console.log(validate);
 
-		// Validate whether the owner of the board is the user who sent the request.
-		if (!user.boards.filter((board) => board === boardId))
-			return callback({ errMessage: 'You cannot delete a list that does not hosted by your boards' });
 		// Delete the list
 		const result = await listModel.findByIdAndDelete(listId);
 		// Delete the list from lists of board
@@ -114,7 +126,7 @@ const updateCardOrder = async (boardId, sourceId, destinationId, destinationInde
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-const updateListOrder = async (boardId, sourceIndex, destinationIndex, listId, callback) => {
+const updateListOrder = async ( workspaceId, boardId, sourceIndex, destinationIndex, listId, callback) => {
 	try {
 		// Validate the parent board of the lists
 		const board = await boardModel.findById(boardId);
@@ -135,11 +147,9 @@ const updateListTitle = async (listId, boardId, user, title, callback) => {
 		const board = await boardModel.findById(boardId);
 		const list = await listModel.findById(listId.toString());
 		// Validate the parent of the list
-		const validate = board.lists.filter((list) => list.id === listId);
+		const validate = board.lists.find((list) => list.toString() === listId);
 		if (!validate) return callback({ errMessage: 'List or board informations are wrong' });
-		// Validate whether the owner of the board is the user who sent the request.
-		if (!user.boards.filter((board) => board === boardId))
-			return callback({ errMessage: 'You cannot delete a list that does not hosted by your boards'});
+	
 		// Change title of list
 		list.title = title;
 		await list.save();
