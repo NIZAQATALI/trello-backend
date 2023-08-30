@@ -2,6 +2,7 @@
 const listModel = require('../modals/listModel');
 const boardModel = require('../modals/boardModel');
 const cardModel = require('../modals/cardModel');
+const workspaceModel = require('../modals/workspaceModel');
 const create = async ( model, user, callback) => {
 	try {
 		// Create new List
@@ -89,10 +90,15 @@ console.log(validate);
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}	
 };
-const updateCardOrder = async (boardId, sourceId, destinationId, destinationIndex, cardId, user, callback) => {
+const updateCardOrder = async (boardId, sourceId, destinationId, destinationIndex, cardId, workspaceId, user, callback) => {
 	try {
 		 console.log("in the service of card update order")
-		// Validate the parent board of the lists
+		// Validate the parent workspace and board of the lists
+		const workspace = await workspaceModel.findById(workspaceId);
+const validateWorkspace = workspace.boards.filter((board) => board === boardId);
+	if (!validateWorkspace) return res.status(403).send({ errMessage: 'You cannot edit the board that you hasnt' });
+
+
 		const board = await boardModel.findById(boardId);
 		let validate = board.lists.filter((list) => list.id === sourceId);
 		const validate2 = board.lists.filter((list) => list.id === destinationId);

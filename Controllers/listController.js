@@ -56,16 +56,15 @@ const deleteById = async (req, res) => {
 };
 const updateCardOrder = async (req, res) => {
 	// deconstruct the params
-	const { boardId, sourceId, destinationId, destinationIndex, cardId } = req.body;
+	const { workspaceId, boardId, sourceId, destinationId, destinationIndex, cardId } = req.body;
 	const user = req.user;
 	// Validate the params
 	if (!(boardId && sourceId && destinationId && cardId))
 		return res.status(400).send({ errMessage: 'All parameters not provided' });
 	// Validate the owner of board
-	const validate = user.boards.filter((board) => board === boardId);
-	if (!validate) return res.status(403).send({ errMessage: 'You cannot edit the board that you hasnt' });
+	
 	// Call the service
-	await listService.updateCardOrder(boardId, sourceId, destinationId, destinationIndex, cardId, user, (err, result) => {
+	await listService.updateCardOrder(boardId, sourceId, destinationId, destinationIndex, cardId,  workspaceId,user, (err, result) => {
 		if (err) return res.status(500).send(err);
 		return res.status(200).send(result);
 	});
