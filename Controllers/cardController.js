@@ -52,7 +52,6 @@ const addComment = async (req, res) => {
 	// Get params
 	const user = req.user;
 	const {  workspaceId,boardId, listId, cardId } = req.params;
-
 	// Call the card service
 	await cardService.addComment(cardId, listId, boardId, workspaceId, user, req.body, (err, result) => {
 		if (err) return res.status(500).send(err);
@@ -81,7 +80,6 @@ const deleteComment = async (req, res) => {
 		return res.status(200).send(result);
 	});
 };
-
 const addMember = async (req, res) => {
 	// Get params
 	const user = req.user;
@@ -93,7 +91,6 @@ const addMember = async (req, res) => {
 		return res.status(200).send(result);
 	});
 };
-
 const deleteMember = async (req, res) => {
 	// Get params
 	const user = req.user;
@@ -173,11 +170,13 @@ const deleteChecklist = async (req, res) => {
 };
 const addChecklistItem = async (req, res) => {
 	// Get params
+	console.log("addChecklistItem")
 	const user = req.user;
-	const { boardId, listId, cardId, checklistId } = req.params;
+	const { workspaceId, boardId, listId, cardId, checklistId } = req.params;
+	console.log("params ids  of card",cardId,"params ids  of list", listId,"params ids  of board", boardId,"params ids  of workspace",  workspaceId,"params ids  of checklist", checklistId)
 	const text = req.body.text;
 	// Call the card service
-	await cardService.addChecklistItem(cardId, listId, boardId, user, checklistId, text, (err, result) => {
+	await cardService.addChecklistItem(cardId, listId, boardId, workspaceId, user, checklistId, text, (err, result) => {
 		if (err) return res.status(500).send(err);
 		return res.status(200).send(result);
 	});
@@ -185,13 +184,17 @@ const addChecklistItem = async (req, res) => {
 const setChecklistItemCompleted = async (req, res) => {
 	// Get params
 	const user = req.user;
-	const { boardId, listId, cardId, checklistId, checklistItemId } = req.params;
+
+	
+	const {  workspaceId,boardId, listId, cardId, checklistId, checklistItemId } = req.params;
 	const completed = req.body.completed;
+	console.log("value", completed);
 	// Call the card service
 	await cardService.setChecklistItemCompleted(
 		cardId,
 		listId,
 		boardId,
+		workspaceId,
 		user,
 		checklistId,
 		checklistItemId,
@@ -205,14 +208,16 @@ const setChecklistItemCompleted = async (req, res) => {
 const setChecklistItemText = async (req, res) => {
 	// Get params
 	const user = req.user;
-	const { boardId, listId, cardId, checklistId, checklistItemId } = req.params;
+	const {  workspaceId,boardId, listId, cardId, checklistId, checklistItemId } = req.params;
 	const text = req.body.text;
-
+	console.log("params ids  of card",cardId,"params ids  of list", listId,"params ids  of board", boardId,"params ids  of workspace",  workspaceId,"params ids  of checklist", checklistId)
 	// Call the card service
+
 	await cardService.setChecklistItemText(
 		cardId,
 		listId,
 		boardId,
+		workspaceId,
 		user,
 		checklistId,
 		checklistItemId,
@@ -226,13 +231,14 @@ const setChecklistItemText = async (req, res) => {
 const deleteChecklistItem = async (req, res) => {
 	// Get params
 	const user = req.user;
-	const { boardId, listId, cardId, checklistId, checklistItemId } = req.params;
+	const {  workspaceId, boardId, listId, cardId, checklistId, checklistItemId } = req.params;
 
 	// Call the card service
 	await cardService.deleteChecklistItem(
 		cardId,
 		listId,
 		boardId,
+		workspaceId,
 		user,
 		checklistId,
 		checklistItemId,
@@ -242,7 +248,6 @@ const deleteChecklistItem = async (req, res) => {
 		}
 	);
 };
-
 const updateStartDueDates = async (req, res) => {
 	// Get params
 	const user = req.user;
@@ -264,7 +269,6 @@ const updateStartDueDates = async (req, res) => {
 		}
 	);
 };
-
 const updateDateCompleted = async (req, res) => {
 	// Get params
 	const user = req.user;
@@ -284,7 +288,6 @@ const updateDateCompleted = async (req, res) => {
 		}
 	);
 };
-
 const addAttachment = async (req, res) => {
 	// Get params
 	const user = req.user;

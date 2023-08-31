@@ -9,10 +9,10 @@ router.delete('/:boardId/:listId/:cardId/:attachmentId/delete-attachment',  auth
 router.post('/:boardId/:listId/:cardId/add-attachment',  auth.verifyToken, cardController.addAttachment);
 router.put('/:boardId/:listId/:cardId/update-dates',   auth.verifyToken,cardController.updateStartDueDates);
 router.put('/:boardId/:listId/:cardId/update-date-completed',  auth.verifyToken, cardController.updateDateCompleted);
-router.delete('/:boardId/:listId/:cardId/:checklistId/:checklistItemId/delete-checklist-item',   auth.verifyToken,cardController.deleteChecklistItem);
-router.put('/:boardId/:listId/:cardId/:checklistId/:checklistItemId/set-checklist-item-text',  auth.verifyToken, cardController.setChecklistItemText);
-router.put('/:boardId/:listId/:cardId/:checklistId/:checklistItemId/set-checklist-item-completed',  auth.verifyToken, cardController.setChecklistItemCompleted);
-router.post('/:boardId/:listId/:cardId/:checklistId/add-checklist-item',  auth.verifyToken, cardController.addChecklistItem);
+router.delete('/:workspaceId/:boardId/:listId/:cardId/:checklistId/:checklistItemId/delete-checklist-item',   auth.verifyToken,cardController.deleteChecklistItem);
+router.put('/:workspaceId/:boardId/:listId/:cardId/:checklistId/:checklistItemId/set-checklist-item-text',  auth.verifyToken, cardController.setChecklistItemText);
+router.put('/:workspaceId/:boardId/:listId/:cardId/:checklistId/:checklistItemId/set-checklist-item-completed',  auth.verifyToken, cardController.setChecklistItemCompleted);
+router.post('/:workspaceId/:boardId/:listId/:cardId/:checklistId/add-checklist-item',  auth.verifyToken, cardController.addChecklistItem);
 router.delete('/:workspaceId/:boardId/:listId/:cardId/:checklistId/delete-checklist',   auth.verifyToken,cardController.deleteChecklist);
 router.post('/:workspaceId/:boardId/:listId/:cardId/create-checklist',   auth.verifyToken,cardController.createChecklist);
 router.put('/:workspaceId/:boardId/:listId/:cardId/:labelId/update-label-selection',  auth.verifyToken, cardController.updateLabelSelection);

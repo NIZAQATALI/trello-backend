@@ -457,7 +457,7 @@ const deleteChecklist = async (cardId, listId, boardId, checklistId, workspaceId
 		}
 		let cl = card.checklists.filter((l) => l._id.toString() === checklistId.toString());
 		//Delete checklistl
-		card.checklists = card.checklists.filter((list) => list._id.toString() !== checklistId.toString());
+		card.checklists = card.checklists.filter((list) => list._id.toString()!== checklistId.toString());
 		await card.save();
 
 		//Add to board activity
@@ -475,19 +475,21 @@ const deleteChecklist = async (cardId, listId, boardId, checklistId, workspaceId
 	}
 };
 
-const addChecklistItem = async (cardId, listId, boardId, user, checklistId, text, callback) => {
+const addChecklistItem = async (cardId, listId, boardId,  workspaceId,user, checklistId, text, callback) => {
 	try {
+
 		// Get models
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
-
+		const workspace = await workspaceModel.findById(workspaceId);
+		console.log("title of alls",card.title,list.title,workspace.title)
+		
 		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
+		const validate = await helperMethods.validateCardOwners(card, list, board,workspace, user, false);
 		if (!validate) {
 			errMessage: 'You dont have permission to add item this checklist';
 		}
-
 		//Add checklistItem
 		card.checklists = card.checklists.map((list) => {
 			if (list._id.toString() == checklistId.toString()) {
@@ -496,12 +498,12 @@ const addChecklistItem = async (cardId, listId, boardId, user, checklistId, text
 			return list;
 		});
 		await card.save();
-
 		// Get to created ChecklistItem's id
 		let checklistItemId = '';
 		card.checklists = card.checklists.map((list) => {
 			if (list._id.toString() == checklistId.toString()) {
 				checklistItemId = list.items[list.items.length - 1]._id;
+				console.log("values:",list.items[list.items.length - 1])
 			}
 			return list;
 		});
@@ -515,6 +517,7 @@ const setChecklistItemCompleted = async (
 	cardId,
 	listId,
 	boardId,
+	workspaceId,
 	user,
 	checklistId,
 	checklistItemId,
@@ -526,9 +529,9 @@ const setChecklistItemCompleted = async (
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
-
+		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
+		const validate = await helperMethods.validateCardOwners(card, list, board,  workspace,user, false);
 		if (!validate) {
 			errMessage: 'You dont have permission to set complete of this checklist item';
 		}
@@ -565,15 +568,15 @@ const setChecklistItemCompleted = async (
 	}
 };
 
-const setChecklistItemText = async (cardId, listId, boardId, user, checklistId, checklistItemId, text, callback) => {
+const setChecklistItemText = async (cardId, listId, boardId, workspaceId, user, checklistId, checklistItemId, text, callback) => {
 	try {
 		// Get models
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
-
+		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
+		const validate = await helperMethods.validateCardOwners(card, list, board,workspace, user, false);
 		if (!validate) {
 			errMessage: 'You dont have permission to set text of this checklist item';
 		}
@@ -597,19 +600,18 @@ const setChecklistItemText = async (cardId, listId, boardId, user, checklistId, 
 	}
 };
 
-const deleteChecklistItem = async (cardId, listId, boardId, user, checklistId, checklistItemId, callback) => {
+const deleteChecklistItem = async ( cardId, listId, boardId,   workspaceId,user, checklistId, checklistItemId, callback) => {
 	try {
 		// Get models
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
-
+		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
+		const validate = await helperMethods.validateCardOwners(card, list, board, workspace,user, false);
 		if (!validate) {
 			errMessage: 'You dont have permission to delete this checklist item';
 		}
-
 		//Delete checklistItem
 		card.checklists = card.checklists.map((list) => {
 			if (list._id.toString() == checklistId.toString()) {
