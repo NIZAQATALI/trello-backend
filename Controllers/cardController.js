@@ -33,6 +33,10 @@ const update = async (req, res) => {
 	const user = req.user;
 	const {  workspaceId,boardId, listId, cardId } = req.params;
 	// Call the card service
+	 // Check if link and name are defined
+	 if (!req.body || Object.keys(req.body).length === 0) {
+		return res.status(400).json({ error: 'Request body must not be empty.' });
+	  }
 	await cardService.update(cardId, listId, boardId, workspaceId, user, req.body, (err, result) => {
 		if (err) return res.status(500).send(err);
 		return res.status(200).send(result);
@@ -73,7 +77,6 @@ const deleteComment = async (req, res) => {
 	// Get params
 	const user = req.user;
 	const {  workspaceId,boardId, listId, cardId, commentId } = req.params;
-
 	// Call the card service
 	await cardService.deleteComment(cardId, listId, boardId, commentId, workspaceId, user, (err, result) => {
 		if (err) return res.status(500).send(err);
@@ -84,7 +87,6 @@ const addMember = async (req, res) => {
 	// Get params
 	const user = req.user;
 	const { workspaceId, boardId, listId, cardId } = req.params;
-
 	// Call the card service
 	await cardService.addMember(cardId, listId, boardId, workspaceId,user, req.body.memberId, (err, result) => {
 		if (err) return res.status(500).send(err);
@@ -184,8 +186,6 @@ const addChecklistItem = async (req, res) => {
 const setChecklistItemCompleted = async (req, res) => {
 	// Get params
 	const user = req.user;
-
-	
 	const {  workspaceId,boardId, listId, cardId, checklistId, checklistItemId } = req.params;
 	const completed = req.body.completed;
 	console.log("value", completed);
@@ -210,9 +210,10 @@ const setChecklistItemText = async (req, res) => {
 	const user = req.user;
 	const {  workspaceId,boardId, listId, cardId, checklistId, checklistItemId } = req.params;
 	const text = req.body.text;
-	console.log("params ids  of card",cardId,"params ids  of list", listId,"params ids  of board", boardId,"params ids  of workspace",  workspaceId,"params ids  of checklist", checklistId)
+	if (!text) {
+		return res.status(400).json({ error: 'Both link and name must be provided in the request body.' });
+	  }
 	// Call the card service
-
 	await cardService.setChecklistItemText(
 		cardId,
 		listId,
@@ -232,7 +233,6 @@ const deleteChecklistItem = async (req, res) => {
 	// Get params
 	const user = req.user;
 	const {  workspaceId, boardId, listId, cardId, checklistId, checklistItemId } = req.params;
-
 	// Call the card service
 	await cardService.deleteChecklistItem(
 		cardId,
@@ -251,14 +251,14 @@ const deleteChecklistItem = async (req, res) => {
 const updateStartDueDates = async (req, res) => {
 	// Get params
 	const user = req.user;
-	const { boardId, listId, cardId } = req.params;
+	const { workspaceId, boardId, listId, cardId } = req.params;
 	const {startDate, dueDate, dueTime} = req.body;
-
 	// Call the card service
 	await cardService.updateStartDueDates(
 		cardId,
 		listId,
 		boardId,
+		workspaceId,
 		user,
 		startDate,
 		dueDate,
@@ -272,14 +272,15 @@ const updateStartDueDates = async (req, res) => {
 const updateDateCompleted = async (req, res) => {
 	// Get params
 	const user = req.user;
-	const { boardId, listId, cardId } = req.params;
+	const {  workspaceId,boardId, listId, cardId } = req.params;
 	const {completed} = req.body;
-
+	console.log("completed:",completed)
 	// Call the card service
 	await cardService.updateDateCompleted(
 		cardId,
 		listId,
 		boardId,
+		workspaceId,
 		user,
 		completed,
 		(err, result) => {
@@ -290,15 +291,20 @@ const updateDateCompleted = async (req, res) => {
 };
 const addAttachment = async (req, res) => {
 	// Get params
+	console.log("in the attechment route");
+	
 	const user = req.user;
-	const { boardId, listId, cardId } = req.params;
+	const {workspaceId, boardId, listId, cardId } = req.params;
 	const {link,name} = req.body;
-
+	if (!link || !name) {
+		return res.status(400).json({ error: 'Both link and name must be provided in the request body.' });
+	  }
 	// Call the card service
 	await cardService.addAttachment(
 		cardId,
 		listId,
 		boardId,
+		workspaceId,
 		user,
 		link,
 		name,
@@ -308,18 +314,16 @@ const addAttachment = async (req, res) => {
 		}
 	);
 };
-
 const deleteAttachment = async (req, res) => {
 	// Get params
 	const user = req.user;
-	const { boardId, listId, cardId, attachmentId } = req.params;
-	
-
+	const { workspaceId,  boardId, listId, cardId, attachmentId } = req.params;
 	// Call the card service
 	await cardService.deleteAttachment(
 		cardId,
 		listId,
 		boardId,
+		workspaceId,
 		user,
 		attachmentId,
 		(err, result) => {
@@ -328,19 +332,17 @@ const deleteAttachment = async (req, res) => {
 		}
 	);
 };
-
 const updateAttachment = async (req, res) => {
 	// Get params
 	const user = req.user;
-	const { boardId, listId, cardId, attachmentId } = req.params;
+	const {  workspaceId,boardId, listId, cardId, attachmentId } = req.params;
 	const {link,name} = req.body;
-	
-
 	// Call the card service
 	await cardService.updateAttachment(
 		cardId,
 		listId,
 		boardId,
+		workspaceId,
 		user,
 		attachmentId,
 		link,
@@ -351,19 +353,17 @@ const updateAttachment = async (req, res) => {
 		}
 	);
 };
-
 const updateCover = async (req, res) => {
 	// Get params
 	const user = req.user;
-	const { boardId, listId, cardId } = req.params;
+	const { workspaceId, boardId, listId, cardId } = req.params;
 	const {color, isSizeOne} = req.body;
-	
-
 	// Call the card service
 	await cardService.updateCover(
 		cardId,
 		listId,
 		boardId,
+		workspaceId,
 		user,
 		color,
 		isSizeOne,
@@ -373,7 +373,6 @@ const updateCover = async (req, res) => {
 		}
 	);
 };
-
 module.exports = {
 	create,
 	deleteById,
