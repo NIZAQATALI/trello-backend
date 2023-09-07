@@ -785,7 +785,6 @@ const updateCover = async (cardId, listId, boardId, workspaceId, user, color, is
 		//Update date cover color
 		card.cover.color = color;
 		card.cover.isSizeOne = isSizeOne;
-
 		await card.save();
 		return callback(false, { message: 'Success!' });
 	} catch (error) {
