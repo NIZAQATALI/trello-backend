@@ -55,33 +55,36 @@ console.log("getcard service")
 		}
 		console.log(" valid")
 		let returnObject = { ...card._doc, listTitle: list.title, listId: listId, boardId: boardId };
-
 		return callback(false, returnObject);
 	} catch (error) {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-
-const deleteById = async (cardId, listId, boardId, user, callback) => {
+const deleteById = async ( cardId, listId, boardId, workspaceId, user, callback) => {
 	try {
 		// Get models
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
-
+		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, user, false);
+		const validate = await helperMethods.validateCardOwners(card, list, board,workspace, user, false);
 		if (!validate) {
 			errMessage: 'You dont have permission to update this card';
 		}
+		 // Find the workspace object based on the matching workspaceId
+ const cardAvalaible= list.cards.find(card => card.toString() === cardId);
 
+  if (!cardAvalaible) {
+	 const errorMessage = 'card information is not correct or card not found';
+	 return callback({ errMessage: errorMessage });
+ }
 		// Delete the card
 		const result = await cardModel.findByIdAndDelete(cardId);
 
-		// Delete the list from lists of board
+		// Delete the card from cards of list
 		list.cards = list.cards.filter((tempCard) => tempCard.toString() !== cardId);
 		await list.save();
-
 		// Add activity log to board
 		board.activity.unshift({
 			user: user._id,
@@ -90,13 +93,11 @@ const deleteById = async (cardId, listId, boardId, user, callback) => {
 			color: user.color,
 		});
 		await board.save();
-
 		return callback(false, { message: 'Success' });
 	} catch (error) {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-
 const update = async (cardId, listId, boardId, workspaceId, user, updatedObj, callback) => {
 	try {
 		// Get models

@@ -2,8 +2,9 @@ const cardController = require('../Controllers/cardController');
 const express = require('express');
 const router = express.Router();
 const auth = require("../Middlewares/auth");
-
+ router.delete('/:workspaceId/:boardId/:listId/:cardId/delete-card',   auth.verifyToken,cardController.deleteById);
  router.put('/:workspaceId/:boardId/:listId/:cardId/update-cover',  auth.verifyToken, cardController.updateCover);
+ router.post('/:workspaceId/:boardId/:listId/:cardId/add-attachment',  auth.verifyToken, cardController.addAttachment);
 router.put('/:workspaceId/:boardId/:listId/:cardId/update-date-completed',  auth.verifyToken, cardController.updateDateCompleted);
 router.put('/:workspaceId/:boardId/:listId/:cardId/update-dates',   auth.verifyToken,cardController.updateStartDueDates);
 router.delete('/:workspaceId/:boardId/:listId/:cardId/:checklistId/:checklistItemId/delete-checklist-item',   auth.verifyToken,cardController.deleteChecklistItem);
