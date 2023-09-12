@@ -3,7 +3,6 @@ const create = async (req, res) => {
 	const { title, backgroundImageLink, workspaceId } = req.body;
     console.log(backgroundImageLink);
 	const  user =req.user;
-	console.log(" this is user",user);
 	if (!(title && backgroundImageLink && workspaceId ))
 		return res.status(400).send({ errMessage: 'Title and/or image cannot be null' });
 		const validate = req.user.workspaces.filter((workspace) => workspace === workspaceId);
@@ -28,21 +27,17 @@ const getAll = async (req, res) => {
 };
 const getById = async (req, res) => {
 	const { workspaceId , boardId} =req.params
-
-	
 	// Validate whether params.id is in the user's boards or not
 	const validate = req.user.workspaces.filter((workspace) => workspace === workspaceId);
 	if (!validate)
 		return res.status(400).send({ errMessage: 'You can not show the this board, you are not a member or owner!' });
 	// Call the service
-	
 	await boardService.getById(boardId, (err, result) => {
 		if (err) return res.status(400).send(err);
 		return res.status(200).send(result);
 	});
 };
 const getActivityById = async (req, res) => {
-
     const { workspaceId, boardId } = req.params;
     console.log(boardId, workspaceId, "both values");
     // Find the workspace object based on the matching workspaceId
@@ -132,17 +127,23 @@ console.log(workspace);
 };
 const addMember = async (req, res) => {
 	// Validate whether params.id is in the user's boards or not
-	const validate = req.user.boards.filter((board) => board === req.params.id);
-	console.log(validate);
-	if (!validate)
-		return res
-			.status(400)
-			.send({ errMessage: 'You can not add member to this board, you are not a member or owner!' });
-	const { boardId } = req.params;
+	//    // Find the workspace object based on the matching workspaceId
+	    const { workspaceId, boardId } = req.params;
+	//    const workspace = req.user.workspaces.find(workspace => workspace.toString() === workspaceId);
+	//    console.log("workspace boards:",workspace.boards)
+	//    const board = workspace.boards.find(board => board.toString() === boardId);
+	//    console.log(workspace);
+	// 	   if (!workspace && !board) {
+	// 		   return res
+	// 			   .status(400)
+	// 			   .send({ errMessage: 'You can not add member to this board, you are not a member or owner!' });
+	// 	   }
+
+	
+
 	const { members } = req.body;
 	// Call the service
-	console.log("to The Serevices")
-	await boardService.addMember(boardId, members, req.user, (err, result) => {
+	await boardService.addMember( workspaceId,boardId, members, req.user, (err, result) => {
 		if (err) return res.status(400).send(err);
 		return res.status(200).send(result);
 	});

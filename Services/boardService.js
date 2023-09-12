@@ -7,16 +7,12 @@ const workspaceModel = require('../modals/workspaceModel');
 const create = async (req,  user ,  callback) => {
 	try {
 		const { title, backgroundImageLink, members , workspaceId } = req.body;
-		console.log(user);
-		console.log(title)
 		// Create and save new board
 		let newBoard = boardModel({ title, backgroundImageLink ,owner:workspaceId});
 		newBoard.save();
 		// Get owner workspace
 		const ownerworkspace = await workspaceModel.findById(workspaceId);
 		// Add newboard's id to owner workspace
-		console.log(newBoard.id)
-		console.log(ownerworkspace)
 		 await ownerworkspace.boards.push(newBoard.id);
 		// Add this board to owner's workspace 
 		await ownerworkspace.save();
@@ -99,13 +95,11 @@ const getById = async (boardId, callback) => {
 };
 const getActivityById = async ( workspaceId, boardId, callback) => {
 	try {
-
 		const Workspace = await workspaceModel.findById(workspaceId);
         // Check if the boardId belongs to the found workspace
         const isBoardInWorkspace = Workspace.boards.find(board => board.toString() === boardId);
         if (!isBoardInWorkspace) {
             return callback({ message: 'The provided boardId is not associated with this workspace.' }); }
-	
 		// Get board by id
 		const board = await boardModel.findById(boardId);
 		return callback(false, board.activity);
@@ -124,7 +118,7 @@ const updateBoardTitle = async (workspaceId, boardId, title, user, callback) => 
         // Get board by id
         const board = await boardModel.findById(boardId);
         if (!board) {
-            return callback({ message: 'Board not found.' });
+            return callback({message: 'Board not found.' });
         }
         board.title = title;
         board.activity.unshift({
@@ -187,27 +181,74 @@ const updateBackground = async (workspaceId, boardId, background, isImage, user,
 		return callback({ message: 'Something went wrong', details: error.message });
 	}
 };
-const addMember = async (id, members, user, callback) => {
+const addMember = async ( workspaceId,id, members, user, callback) => {
 	try {
 		// Get board by id
 		const board = await boardModel.findById(id);
-console.log("in the services")
-console.log("board", board);
-		// Set variables
-		await Promise.all(
-			members.map(async (member) => {
-				const newMember = await userModel.findOne({ email: member.email });
-				console.log("new member",newMember);
-				newMember.boards.push(board._id);
-				await newMember.save();
-				board.members.push({
+		const workspace = await workspaceModel.findById(workspaceId);
+
+
+
+// Find the workspace object based on the matching workspaceId
+
+const workspaceIdmatch = user.workspaces.find(workspace => workspace.toString() === workspaceId);
+
+const boardIdmatch = workspace.boards.find(board => board.toString() === id);
+
+
+	if (!(workspaceIdmatch&&boardIdmatch)) {
+		
+			return callback({ message: 'You can not add member to this board, you are not a member or owner!' });
+	}
+
+		// // Set variables
+		// await Promise.all(
+		// 	members.map(async (member) => {
+		// 		const newMember = await userModel.findOne({ email: member.email });
+		// 		console.log("new member",newMember);
+		// 		newMember.workspace.boards.push(board._id);
+		// 		await newMember.save();
+		// 		board.members.push({
+		// 			user: newMember._id,
+		// 			name: newMember.name,
+		// 			surname: newMember.surname,
+		// 			email: newMember.email,
+		// 			color: newMember.color,
+		// 			role: 'member',
+		// 		});
+		    // Set variables
+			await Promise.all(
+				members.map(async (member) => {
+				  const newMember = await userModel.findOne({ email: member.email });
+		  
+				//   // Check if the new member is in the same workspace as the board
+				//   if (newMember.workspace.equals(workspaceId)) {
+				// 	// Add the boardId to the new member's workspace's boards array
+				// 	newMember.workspace.boards.push(board._id);
+				// 	await newMember.workspace.save();
+				//   }
+				  const isMemberOfThisWorkspace = newMember.workspaces.find(workspace => workspace.toString() === workspaceId);
+				  const newMemberWorkspace = await workspaceModel.findById(isMemberOfThisWorkspace);
+				//  console.log(" new memberworkspace boards",newMemberWorkspace.boards)
+				
+				  if (!(isMemberOfThisWorkspace)) {
+		
+					return callback({ message: ' this member also should have member of this Workspace!' });
+			}
+			console.log(" new memberworkspace boards full:",newMemberWorkspace.boards)
+				  newMemberWorkspace.boards.push(board._id);
+				
+				  await newMember.save();
+		  
+				  board.members.push({
 					user: newMember._id,
 					name: newMember.name,
 					surname: newMember.surname,
 					email: newMember.email,
 					color: newMember.color,
 					role: 'member',
-				});
+				  });
+		  
 				//Add to board activity
 				board.activity.push({
 					user: user.id,
@@ -219,7 +260,6 @@ console.log("board", board);
 		);
 		// Save changes
 		await board.save();
-
 		return callback(false, board.members);
 	} catch (error) {
 		return callback({ message: 'Something went wrong', details: error.message });
@@ -227,10 +267,8 @@ console.log("board", board);
 };
 const deleteById = async ( boardId, workspaceId,user, callback) => {
 	try {
-	
 		// Get board to check the parent of board is this workspace
 		const board = await boardModel.findById(boardId);
-		console.log(board,"nahi board")
 	if (board==null) return res.status(400).send({ errMessage: ' your board not found in  workspace boards' });
 		// Get workspace to check the parent of board is this workspace
 		const workspace = await workspaceModel.findById(workspaceId);

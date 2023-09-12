@@ -10,7 +10,6 @@ const create = async (req, res) => {
 			.status(400)
 			.send({ errMessage: 'The create operation could not be completed because there is missing information'});
 	//Call the card service
-    
 	await cardService.create(  workspaceId,title, listId, boardId, user, (err, result) => {
 		if (err) return res.status(500).send(err);
 		return res.status(201).send(result);
@@ -18,7 +17,6 @@ const create = async (req, res) => {
 };
 const getCard = async (req, res) => {
 	// Get params
-
 	const user = req.user;
 
 	const {workspaceId, boardId, listId, cardId } = req.params;
@@ -105,7 +103,7 @@ const deleteMember = async (req, res) => {
 	});
 };
 const createLabel = async (req, res) => {
-	// Get params
+	// Get paramsz
 	const user = req.user;
 	const { workspaceId, boardId, listId, cardId } = req.params;
 	const label = req.body;
@@ -149,7 +147,6 @@ const updateLabelSelection = async (req, res) => {
 };
 const createChecklist = async (req, res) => {
 	// Get params
-	console.log("in the create checklist")
 	const user = req.user;
 	const { workspaceId, boardId, listId, cardId } = req.params;
 	const title = req.body.title;
@@ -160,7 +157,6 @@ const createChecklist = async (req, res) => {
 	});
 };
 const deleteChecklist = async (req, res) => {
-	console.log("delete checlist route");
 	// Get params
 	const user = req.user;
 	const {  workspaceId,boardId, listId, cardId, checklistId } = req.params;
@@ -188,7 +184,6 @@ const setChecklistItemCompleted = async (req, res) => {
 	const user = req.user;
 	const {  workspaceId,boardId, listId, cardId, checklistId, checklistItemId } = req.params;
 	const completed = req.body.completed;
-	console.log("value", completed);
 	// Call the card service
 	await cardService.setChecklistItemCompleted(
 		cardId,
@@ -292,7 +287,6 @@ const updateDateCompleted = async (req, res) => {
 const addAttachment = async (req, res) => {
 	// Get params
 	console.log("in the attechment route");
-	
 	const user = req.user;
 	const {workspaceId, boardId, listId, cardId } = req.params;
 	const {link,name} = req.body;

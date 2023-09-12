@@ -12,7 +12,6 @@ const create = async ( workspaceId,title, listId, boardId, user, callback) => {
 		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate the ownership
 		const validate = await helperMethods.validateCardOwners(null, list, board, workspace, true);
-		console.log(validate,"uuu");
 		if (!validate) return callback({ errMessage: 'You dont have permission to add card to this list or board' });
          console.log(validate);
 		// Create new card
@@ -260,7 +259,6 @@ const addMember = async (cardId, listId, boardId, workspaceId, user, memberId, c
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-
 const deleteMember = async (cardId, listId, boardId,  workspaceId,user, memberId, callback) => {
 	try {
 		// Get models
@@ -273,14 +271,11 @@ const deleteMember = async (cardId, listId, boardId,  workspaceId,user, memberId
 		if (!validate) {
 			errMessage: 'You dont have permission to add member this card';
 		}
-
 		//delete member
 		card.members = card.members.filter((a) => a.user.toString() !== memberId.toString());
 		await card.save();
-
 		//get member
 		const tempMember = await userModel.findById(memberId);
-
 		//Add to board activity
 		board.activity.unshift({
 			user: user._id,
@@ -292,7 +287,6 @@ const deleteMember = async (cardId, listId, boardId,  workspaceId,user, memberId
 			color: user.color,
 		});
 		board.save();
-
 		return callback(false, { message: 'success' });
 	} catch (error) {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
@@ -318,15 +312,12 @@ const createLabel = async (cardId, listId, boardId,workspaceId, user, label, cal
 			selected: true,
 		});
 		await card.save();
-
 		const labelId = card.labels[0]._id;
-
 		return callback(false, { labelId: labelId });
 	} catch (error) {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-
 const updateLabel = async (cardId, listId, boardId, labelId, user,workspaceId, label, callback) => {
 	try {
 		// Get models
@@ -339,7 +330,6 @@ const updateLabel = async (cardId, listId, boardId, labelId, user,workspaceId, l
 		if (!validate) {
 			errMessage: 'You dont have permission to update this card';
 		}
-
 		//Update label
 		card.labels = card.labels.map((item) => {
 			if (item._id.toString() === labelId.toString()) {
@@ -350,13 +340,11 @@ const updateLabel = async (cardId, listId, boardId, labelId, user,workspaceId, l
 			return item;
 		});
 		await card.save();
-
 		return callback(false, { message: 'Success!' });
 	} catch (error) {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-
 const deleteLabel = async (cardId, listId, boardId, labelId, workspaceId, user, callback) => {
 	try {
 		// Get models
@@ -394,8 +382,7 @@ const updateLabelSelection = async (cardId, listId, boardId, labelId, workspaceI
 		//Update label
 		card.labels = card.labels.map((item) => {
 			if (item._id.toString() === labelId.toString()) {
-				item.selected = selected;
-			}
+				item.selected = selected;}
 			return item;
 		});
 		await card.save();

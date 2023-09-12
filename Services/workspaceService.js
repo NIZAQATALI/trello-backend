@@ -74,13 +74,10 @@ const getWorkspaces = async (userId, callback) => {
 
 		// Get board's ids of user
 		const boardIds = user.workspaces;
-
 		// Get boards of user
 		const workspaces = await workspaceModel.find({ _id: { $in: boardIds } });
 		console.log(workspaces);
-		
 		return callback(false, workspaces);
-		
 	} catch (error) {
 		return callback({ msg: 'Something went wrong', details: error.message });
 	}
@@ -118,11 +115,39 @@ const updateWorkspaceDescription = async (workspaceId, description, user, callba
 		return callback({ message: 'Something went wrong', details: error.message });
 	}
 };
-
+const addMember = async (id, members, user, callback) => {
+	try {
+		// Get workspace by id
+		const workspace = await workspaceModel.findById(id);
+		// Set variables
+		await Promise.all(
+			members.map(async (member) => {
+				const newMember = await userModel.findOne({ email: member.email });
+				console.log("new member",newMember);
+				newMember.workspaces.push(workspace._id);
+				await newMember.save();
+				workspace.members.push({
+					user: newMember._id,
+					name: newMember.name,
+					surname: newMember.surname,
+					email: newMember.email,
+					color: newMember.color,
+					role: 'member',
+				});
+			})
+		);
+		// Save changes
+		await workspace.save();
+		return callback(false, workspace.members);
+	} catch (error) {
+		return callback({ message: 'Something went wrong', details: error.message });
+	}
+};
 module.exports = {
 create,
 getWorkspaces,
 getWorkspace,
 updateWorkspaceDescription,
-updateWorkspaceName
+updateWorkspaceName,
+addMember
 }

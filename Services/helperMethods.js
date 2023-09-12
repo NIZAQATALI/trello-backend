@@ -19,7 +19,6 @@ const createRandomHexColor = () => {
 	}
 	return hex.toString();
 };
-
 const validateCardOwners = async (card = null, list, board,workspace, isCreate = false) => {
 	console.log("userssss:",workspace.boards);
 	const validate = isCreate ? true : list.cards.find((item) => item.toString() === card._id.toString());
