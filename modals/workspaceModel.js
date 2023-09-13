@@ -32,13 +32,19 @@ const workspaceSchema = new mongoose.Schema({
         }
     },
 ],
+owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'user',
+},
+
+
 boards: [
     {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'board',
     },
 ],
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Reference to the user who created the workspace
+ // Reference to the user who created the workspace
   // You can add more fields specific to your workspace requirements
 });
 const Workspace = mongoose.model("Workspace", workspaceSchema);

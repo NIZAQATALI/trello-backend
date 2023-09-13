@@ -7,7 +7,7 @@ const create = async (req, callback) => {
 	try {
         const { name, type, description } = req.body;
 		// Create and save new board
-		let newworkspace = workspaceModel({ name, type, description});
+		let newworkspace = workspaceModel({ name, type, description,owner:req.user._id});
 		newworkspace.save();
 		// Add this board to owner's boards
 		console.log(req.user.id)
