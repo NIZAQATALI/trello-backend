@@ -6,7 +6,7 @@ const create = async (req, res) => {
     if (!workspace) {
         return res 
             .status(400)
-            .send({ errMessage: 'Workspace not found or you do not have access to it.' });
+            .send({ errMessage: 'Workspace not found or you do not have access to it.'});
     }
 	// Deconstruct the body
 	const { title, boardId } = req.body;
@@ -22,6 +22,7 @@ const create = async (req, res) => {
 const getAll = async (req, res) => {
 	// Assing parameter to constant
 	const { workspaceId,boardId } = req.params;
+	const userId = req.user.id
 	console.log(workspaceId," han yehi hai");
 	const workspace = req.user.workspaces.find(workspace => workspace.toString() === workspaceId);
     if (!workspace) {
@@ -29,9 +30,8 @@ const getAll = async (req, res) => {
             .status(400)
             .send({ errMessage: 'Workspace not found or you do not have access to it.' });
     }
-
 	// Call the service to get all lists whose owner id matches the boardId
-	await listService.getAll(boardId, (err, result) => {
+	await listService.getAll(workspaceId,boardId, userId, (err, result) => {
 		if (err) return res.status(500).send(err);
 		return res.status(200).send(result);
 	});
@@ -100,7 +100,6 @@ const updateListTitle = async (req, res) => {
 			.status(400)
 			.send({ errMessage: 'Workspace not found or you do not have access to it.' });
 	}
-   
 	const user = req.user;
 	const {title} = req.body;
 	// Validate the listId and boardId
@@ -110,6 +109,16 @@ const updateListTitle = async (req, res) => {
 		return res.status(200).send(result);
 	});
 };
+const addMemberToList = async (req, res) => {
+    const {  workspaceId,boardId, listId } = req.params;
+    const { members } = req.body; // Assuming members is an array of member objects
+    await listService.addMemberToList( workspaceId,boardId, listId,  members, req.user, (err, result) => {
+        if (err) {
+            return res.status(400).send({ errMessage: err.message });
+        }
+        return res.status(200).send(result);
+    });
+};
 module.exports = {
 	create,
 	getAll,
@@ -117,4 +126,5 @@ module.exports = {
 	updateCardOrder,
 	updateListOrder,
 	updateListTitle,
+	addMemberToList
 };

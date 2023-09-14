@@ -10,6 +10,31 @@ const listSchema = mongoose.Schema({
 			ref: 'card',
 		}
 	],
+	members: [
+		{
+			user: {
+				type: mongoose.Schema.Types.ObjectId,
+				ref: 'user',
+			},
+			name: {
+				type: String,
+			},
+			surname: {
+				type: String,
+			},
+			email: {
+				type: String,
+			},
+			role: {
+				type: String,
+				default: 'member',
+			},
+			color: {
+				type:String,
+			}
+		},
+	],
+
 	owner: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'board',

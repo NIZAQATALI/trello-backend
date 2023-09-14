@@ -91,12 +91,11 @@ const create = async (req,  user ,  callback) => {
 
 const getAll = async (userId, workspaceId, callback) => {
 	try {
-		console.log("in the route")
+
 	  // Get workspace
 	  const workspace = await workspaceModel.findById(workspaceId);
 	  // Get user
 	  const user = await userModel.findById(userId);
-  
 	  // Check if the user is the owner of the workspace
 	  console.log("workspace owner-> :",workspace.owner);
 	  console.log(" UserId-> :",userId);
@@ -105,28 +104,25 @@ const getAll = async (userId, workspaceId, callback) => {
 	  // Get board's ids of workspace
 	  const boardIds = workspace.boards;
 	  // Define a filter to use in the query
-	  let filter = { _id: { $in: boardIds }};
+	  let filter = { _id: { $in: boardIds}};
 	  // If the user is not the owner and is a member of the workspace,
 	  // add an additional filter to only show boards the user is a member of
 	  if (!isOwner) {
 		filter.members = { $elemMatch: { user: userId } };
 	  }
-  
+	  
 	  // Get boards of the workspace based on the filter
 	  const boards = await boardModel.find(filter);
-  
 	  // Delete unnecessary objects
 	  boards.forEach((board) => {
 		board.activity = undefined;
 		board.lists = undefined;
 	  });
-  
 	  return callback(false, boards);
 	} catch (error) {
 	  return callback({ msg: 'Something went wrong', details: error.message });
 	}
   };
-  
 const getById = async (boardId, callback) => {
 	try {
 		// Get board by id
@@ -229,21 +225,13 @@ const addMember = async ( workspaceId,id, members, user, callback) => {
 		// Get board by id
 		const board = await boardModel.findById(id);
 		const workspace = await workspaceModel.findById(workspaceId);
-
-
-
 // Find the workspace object based on the matching workspaceId
 
 const workspaceIdmatch = user.workspaces.find(workspace => workspace.toString() === workspaceId);
-
 const boardIdmatch = workspace.boards.find(board => board.toString() === id);
-
-
 	if (!(workspaceIdmatch&&boardIdmatch)) {
-		
 			return callback({ message: 'You can not add member to this board, you are not a member or owner!' });
 	}
-
 		// // Set variables
 		// await Promise.all(
 		// 	members.map(async (member) => {

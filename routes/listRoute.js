@@ -8,4 +8,5 @@ router.get('/:workspaceId/:boardId',  auth.verifyToken, listController.getAll);
 router.delete('/:workspaceId/:boardId/:listId',    auth.verifyToken, listController.deleteById);
 router.post('/change-card-order',   auth.verifyToken, listController.updateCardOrder);
 router.post('/change-list-order',   auth.verifyToken, listController.updateListOrder);
+router.post('/:workspaceId/:boardId/:listId/add-member',auth.verifyToken, listController.addMemberToList);
 module.exports = router;
