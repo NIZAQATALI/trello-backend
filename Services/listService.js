@@ -58,10 +58,8 @@ await newList.save();
 // 		return callback({ errMessage: 'Something went wrong', details: error.message });
 // 	}
 // };
-
 const getAll = async ( workspaceId, boardId, userId, callback) => {
 	try {
-
 // Get  modals
 	  const workspace = await workspaceModel.findById(workspaceId);
 	   const board = await boardModel.findById(boardId);
@@ -81,8 +79,9 @@ const getAll = async ( workspaceId, boardId, userId, callback) => {
 	  }
 	  console.log("filter Value:",filter);
 		 // Get lists of the board based on the filter
-	  const lists = await listModel.find(filter);	
-	  console.log("lists",lists);
+	  const lists = await listModel.find(filter).populate({ path: 'cards' }).exec();	
+	//   console.log("lists",lists);
+
 	//   // Order the lists
 	// 	let responseObject = board.lists.map((listId) => {
 	// 		return lists.filter((listObject) => listObject._id.toString() === listId.toString())[0];
@@ -93,11 +92,6 @@ const getAll = async ( workspaceId, boardId, userId, callback) => {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-
-
-
-
-
 const deleteById = async (listId, boardId, user, callback) => {
 	try {
 		// Get board to check the parent of list is this board
@@ -139,13 +133,10 @@ console.log(validate);
 };
 const updateCardOrder = async (boardId, sourceId, destinationId, destinationIndex, cardId, workspaceId, user, callback) => {
 	try {
-		 console.log("in the service of card update order")
 		// Validate the parent workspace and board of the lists
 		const workspace = await workspaceModel.findById(workspaceId);
 const validateWorkspace = workspace.boards.filter((board) => board === boardId);
 	if (!validateWorkspace) return res.status(403).send({ errMessage: 'You cannot edit the board that you hasnt' });
-
-
 		const board = await boardModel.findById(boardId);
 		let validate = board.lists.filter((list) => list.id === sourceId);
 		const validate2 = board.lists.filter((list) => list.id === destinationId);
@@ -211,7 +202,6 @@ const updateListTitle = async (listId, boardId, user, title, callback) => {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
  };
-
  const addMemberToList = async ( workspaceId,boardId, listId, members, user, callback) => {
     try {
         // Find the board by ID

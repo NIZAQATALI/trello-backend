@@ -18,6 +18,10 @@ const create = async ( workspaceId,title, listId, boardId, user, callback) => {
 		const card = await cardModel({ title: title });
 		card.owner = listId;
 		card.activities.unshift({ text: `added this card to ${list.title}`, userName: user.name, color: user.color });
+		card.members.unshift({ user: user._id, 
+			userName: user.name,
+			 color: user.color ,
+			 role: "owner"});
 		card.labels = helperMethods.labelsSeed;
 		await card.save();
 		// Add id of the new card to owner list
@@ -45,14 +49,14 @@ const getCard = async ( workspaceId,cardId, listId, boardId, user, callback) => 
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
 		const workspace = await workspaceModel.findById(workspaceId);
+		console.log(workspace)
 console.log("getcard service")
 		// Validate owner
 		const validate = await helperMethods.validateCardOwners( card, list,  board,workspace , user, false);
+		console.log("validate result:",validate); 
 		if (!validate) {
-		
-			errMessage: 'You dont have permission to update this card';
+			return callback({  errMessage: 'You dont have permission to access this card' });
 		}
-		console.log(" valid")
 		let returnObject = { ...card._doc, listTitle: list.title, listId: listId, boardId: boardId };
 		return callback(false, returnObject);
 	} catch (error) {
@@ -80,7 +84,6 @@ const deleteById = async ( cardId, listId, boardId, workspaceId, user, callback)
  }
 		// Delete the card
 		const result = await cardModel.findByIdAndDelete(cardId);
-
 		// Delete the card from cards of list
 		list.cards = list.cards.filter((tempCard) => tempCard.toString() !== cardId);
 		await list.save();
@@ -224,7 +227,6 @@ const deleteComment = async (cardId, listId, boardId, commentId, workspaceId,use
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-
 const addMember = async (cardId, listId, boardId, workspaceId, user, memberId, callback) => {
 	try {
 		// Get models
@@ -243,6 +245,7 @@ const addMember = async (cardId, listId, boardId, workspaceId, user, memberId, c
 			user: member._id,
 			name: member.name,
 			color: member.color,
+			role: "member"
 		});
 		await card.save();
 		//Add to board activity
@@ -357,7 +360,6 @@ const deleteLabel = async (cardId, listId, boardId, labelId, workspaceId, user, 
 		if (!validate) {
 			errMessage: 'You dont have permission to delete this label';
 		}
-
 		//Delete label
 		card.labels = card.labels.filter((label) => label._id.toString() !== labelId.toString());
 		await card.save();
@@ -378,7 +380,6 @@ const updateLabelSelection = async (cardId, listId, boardId, labelId, workspaceI
 		if (!validate) {
 			errMessage: 'You dont have permission to update this card';
 		}
-
 		//Update label
 		card.labels = card.labels.map((item) => {
 			if (item._id.toString() === labelId.toString()) {
@@ -386,7 +387,6 @@ const updateLabelSelection = async (cardId, listId, boardId, labelId, workspaceI
 			return item;
 		});
 		await card.save();
-
 		return callback(false, { message: 'Success!' });
 	} catch (error) {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
@@ -449,23 +449,18 @@ const deleteChecklist = async (cardId, listId, boardId, checklistId, workspaceId
 			color: user.color,
 		});
 		board.save();
-
 		return callback(false, { message: 'Success!' });
 	} catch (error) {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-
 const addChecklistItem = async (cardId, listId, boardId,  workspaceId,user, checklistId, text, callback) => {
 	try {
-
 		// Get models
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
 		const workspace = await workspaceModel.findById(workspaceId);
-		console.log("title of alls",card.title,list.title,workspace.title)
-		
 		// Validate owner
 		const validate = await helperMethods.validateCardOwners(card, list, board,workspace, user, false);
 		if (!validate) {
@@ -493,7 +488,6 @@ const addChecklistItem = async (cardId, listId, boardId,  workspaceId,user, chec
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-
 const setChecklistItemCompleted = async (
 	cardId,
 	listId,
@@ -531,7 +525,6 @@ const setChecklistItemCompleted = async (
 			return list;
 		});
 		await card.save();
-
 		//Add to board activity
 		board.activity.unshift({
 			user: user._id,
@@ -608,8 +601,7 @@ const deleteChecklistItem = async ( cardId, listId, boardId,   workspaceId,user,
 const updateStartDueDates = async (cardId, listId, boardId ,workspaceId, user, startDate, dueDate, dueTime, callback) => {
 	try {
 		// Get models
-
-		console.log(" in this route");
+	
 	
 		const card = await cardModel.findById(cardId);
 		const list = await listModel.findById(listId);
