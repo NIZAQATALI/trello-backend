@@ -13,7 +13,6 @@ const create = async ( workspaceId,title, listId, boardId, user, callback) => {
 		// Validate the ownership
 		const validate = await helperMethods.validateCardOwners(null, list, board, workspace, true);
 		if (!validate) return callback({ errMessage: 'You dont have permission to add card to this list or board' });
-         console.log(validate);
 		// Create new card
 		const card = await cardModel({ title: title });
 		card.owner = listId;
@@ -49,7 +48,7 @@ const getCard = async ( workspaceId,cardId, listId, boardId, user, callback) => 
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
 		const workspace = await workspaceModel.findById(workspaceId);
-		console.log(workspace)
+	
 console.log("getcard service")
 		// Validate owner
 		const validate = await helperMethods.validateCardOwners( card, list,  board,workspace , user, false);
@@ -140,7 +139,6 @@ const addComment = async (cardId, listId, boardId, workspaceId, user, body, call
 			color: user.color,
 		});
 		await card.save();
-
 		//Add comment to board activity
 		board.activity.unshift({
 			user: user._id,
@@ -151,7 +149,6 @@ const addComment = async (cardId, listId, boardId, workspaceId, user, body, call
 			color: user.color,
 		});
 		board.save();
-
 		return callback(false, card.activities);
 	} catch (error) {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
@@ -169,8 +166,6 @@ const updateComment = async (cardId, listId, boardId, commentId, workspaceId, us
 		if (!validate) {
 			errMessage: 'You dont have permission to update this card';
 		}
-		 console.log("activities of this card:",card.activities)
-		 console.log("activity id:",commentId)
 		//Update card
 		card.activities = card.activities.map((activity) => {
 			if (activity._id.toString() === commentId.toString()) {

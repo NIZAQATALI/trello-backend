@@ -226,7 +226,6 @@ const addMember = async ( workspaceId,id, members, user, callback) => {
 		const board = await boardModel.findById(id);
 		const workspace = await workspaceModel.findById(workspaceId);
 // Find the workspace object based on the matching workspaceId
-
 const workspaceIdmatch = user.workspaces.find(workspace => workspace.toString() === workspaceId);
 const boardIdmatch = workspace.boards.find(board => board.toString() === id);
 	if (!(workspaceIdmatch&&boardIdmatch)) {
@@ -251,7 +250,6 @@ const boardIdmatch = workspace.boards.find(board => board.toString() === id);
 			await Promise.all(
 				members.map(async (member) => {
 				  const newMember = await userModel.findOne({ email: member.email });
-		  
 				//   // Check if the new member is in the same workspace as the board
 				//   if (newMember.workspace.equals(workspaceId)) {
 				// 	// Add the boardId to the new member's workspace's boards array

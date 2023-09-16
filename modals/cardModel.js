@@ -37,7 +37,11 @@ const cardSchema = mongoose.Schema({
 			},
 			color:{
 				type:String,
-			}
+			},
+			role: {
+				type: String,
+				default: 'member',
+			},
 		},
 	],
 	watchers: [

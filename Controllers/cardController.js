@@ -18,7 +18,6 @@ const create = async (req, res) => {
 const getCard = async (req, res) => {
 	// Get params
 	const user = req.user;
-
 	const {workspaceId, boardId, listId, cardId } = req.params;
 	// Call the card service
 	await cardService.getCard(  workspaceId,cardId, listId, boardId, user, (err, result) => {
@@ -64,7 +63,6 @@ const updateComment = async (req, res) => {
 	// Get params
 	const user = req.user;
 	const {  workspaceId,boardId, listId, cardId, commentId } = req.params;
-
 	// Call the card service
 	await cardService.updateComment(cardId, listId, boardId, commentId, workspaceId, user, req.body, (err, result) => {
 		if (err) return res.status(500).send(err);
@@ -95,7 +93,6 @@ const deleteMember = async (req, res) => {
 	// Get params
 	const user = req.user;
 	const { workspaceId,boardId, listId, cardId, memberId } = req.params;
-
 	// Call the card service
 	await cardService.deleteMember(cardId, listId, boardId,workspaceId, user, memberId, (err, result) => {
 		if (err) return res.status(500).send(err);
@@ -168,10 +165,10 @@ const deleteChecklist = async (req, res) => {
 };
 const addChecklistItem = async (req, res) => {
 	// Get params
-	console.log("addChecklistItem")
+	
 	const user = req.user;
 	const { workspaceId, boardId, listId, cardId, checklistId } = req.params;
-	console.log("params ids  of card",cardId,"params ids  of list", listId,"params ids  of board", boardId,"params ids  of workspace",  workspaceId,"params ids  of checklist", checklistId)
+
 	const text = req.body.text;
 	// Call the card service
 	await cardService.addChecklistItem(cardId, listId, boardId, workspaceId, user, checklistId, text, (err, result) => {

@@ -73,13 +73,48 @@ const getAll = async ( workspaceId, boardId, userId, callback) => {
 	  // Define a filter to use in the query
 	  let filter = { _id: { $in: listIds}};
  // If the user is not the owner and is a member of the workspace,
-	  // add an additional filter to only show boards the user is a member of
+	  // add an additional filter to only show lists the user is a member of
+	  console.log(isOwner);
 	  if (!isOwner) {
+		
 		filter.members = { $elemMatch: { user: userId } };
 	  }
 	  console.log("filter Value:",filter);
 		 // Get lists of the board based on the filter
-	  const lists = await listModel.find(filter).populate({ path: 'cards' }).exec();	
+	//   const lists = await listModel.find(filter).populate({ path: 'cards' }).exec();
+	const lists = await listModel.find(filter);
+	console.log("listsssssssss:", lists);
+	console.log("isOwner before loop:", isOwner);
+for (let i = 0; i < lists.length; i++) {
+
+    const list = lists[i];
+    console.log(`List Title: ${list.title}`);
+    
+    // Access the cards associated with this list
+    const cardIds = list.cards;
+    console.log("cardsIds", cardIds);
+
+    // Define a Cardfilter to use in the query for each list
+    let Cardfilter = { _id: { $in: cardIds } };
+    
+    // If the user is not the owner and is a member of the workspace,
+    
+    if (!isOwner) {
+	
+         Cardfilter.members = { $elemMatch: { user: userId } };
+      
+    }
+    
+    const cards = await cardModel.find(Cardfilter);
+	list.cards = cards;
+   
+	console.log(" number of cards:", cards.length);
+}
+
+  // Now, populate the cards field in each list
+
+console.log("list resposnsssssssssssssssssssssssssssssssssss",lists);
+
 	//   console.log("lists",lists);
 
 	//   // Order the lists
@@ -210,34 +245,41 @@ const updateListTitle = async (listId, boardId, user, title, callback) => {
 		const list = await listModel.findById(listId);
         // Find the list within the board by ID
         const listIdFind = board.lists.find(list => list._id.toString() === listId);
+		let callbackCalled = false; 
         // Check if the list exists
         if (!list) {
             return callback({ message: 'List not found' });
         }
         const workspaceIdmatch = user.workspaces.find(workspace => workspace.toString() === workspaceId);
-
 const boardIdmatch = workspace.boards.find(board => board.toString() === boardId);
 const listIdmatch = board.lists.find(board => board.toString() === listId);
 	if (!(workspaceIdmatch&&boardIdmatch&&listIdmatch)) {
 			return callback({ message: 'You can not add member to this board, you are not  owner!' });
 	}
+
+	
         // Set variables
 			await Promise.all(
 				members.map(async (member) => {
 				  const newMember = await userModel.findOne({ email: member.email });
 				  console.log(" new memberworkspace boards",workspace.boards)
 				  console.log(" new memberworkspace boards",boardId);
+				  const isMemberInList = list.members.find(member => member.email === newMember.email);
+	
+				  if (isMemberInList) {
+                    // Callback is called only if not called previously
+                    if (!callbackCalled) {
+                        callbackCalled = true;
+                        return callback({ message: 'Member is already in the list' });
+                    }
+                }
 				  const isMemberOfThisBoard = workspace.boards.find(b=> b.toString() === boardId);
 				  if (!(isMemberOfThisBoard)) {
 					return callback({ message: ' To add in the list member also should have member of parent board!' });
 			}
 			const newMemberBoard = await boardModel.findById(isMemberOfThisBoard);
  // Check if the member is already in the list
- console.log("list.member->",list);
- const isMemberInList = list.members.find(member => member.toString() === newMember._id);
- if (isMemberInList) {
-	 return callback({ message: 'Member is already in the list' });
- }
+ console.log("list.member->",list.members);
 			console.log(" new memberBoard boards full:",newMemberBoard)
 				  newMemberBoard.lists.push(list._id);
 				  await newMember.save();
@@ -253,7 +295,12 @@ const listIdmatch = board.lists.find(board => board.toString() === listId);
 				);
         // Save changes to the board
         await list.save();
-        return callback(null, list.members);
+       // Callback is called here only if not called previously
+	   if (!callbackCalled) {
+	
+		return callback(null, list.members);
+	}
+	
     } catch (error) {
         console.error(error);
         return callback({ message: 'Something went wrong', details: error.message });
