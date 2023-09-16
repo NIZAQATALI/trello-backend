@@ -74,10 +74,10 @@ const getAll = async ( workspaceId, boardId, userId, callback) => {
 	  let filter = { _id: { $in: listIds}};
  // If the user is not the owner and is a member of the workspace,
 	  // add an additional filter to only show lists the user is a member of
-	  console.log(isOwner);
+
 	  if (!isOwner) {
-		
 		filter.members = { $elemMatch: { user: userId } };
+		console.log("userId->",userId)
 	  }
 	  console.log("filter Value:",filter);
 		 // Get lists of the board based on the filter
@@ -256,16 +256,14 @@ const listIdmatch = board.lists.find(board => board.toString() === listId);
 	if (!(workspaceIdmatch&&boardIdmatch&&listIdmatch)) {
 			return callback({ message: 'You can not add member to this board, you are not  owner!' });
 	}
-
-	
         // Set variables
 			await Promise.all(
 				members.map(async (member) => {
 				  const newMember = await userModel.findOne({ email: member.email });
 				  console.log(" new memberworkspace boards",workspace.boards)
 				  console.log(" new memberworkspace boards",boardId);
+				  
 				  const isMemberInList = list.members.find(member => member.email === newMember.email);
-	
 				  if (isMemberInList) {
                     // Callback is called only if not called previously
                     if (!callbackCalled) {
@@ -279,8 +277,7 @@ const listIdmatch = board.lists.find(board => board.toString() === listId);
 			}
 			const newMemberBoard = await boardModel.findById(isMemberOfThisBoard);
  // Check if the member is already in the list
- console.log("list.member->",list.members);
-			console.log(" new memberBoard boards full:",newMemberBoard)
+ console.log("new member_id",newMember._id);
 				  newMemberBoard.lists.push(list._id);
 				  await newMember.save();
 				  list.members.push({

@@ -222,40 +222,86 @@ const deleteComment = async (cardId, listId, boardId, commentId, workspaceId,use
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-const addMember = async (cardId, listId, boardId, workspaceId, user, memberId, callback) => {
-	try {
-		// Get models
-		const card = await cardModel.findById(cardId);
-		const list = await listModel.findById(listId);
-		const board = await boardModel.findById(boardId);
-		const member = await userModel.findById(memberId);
-		const workspace = await workspaceModel.findById(workspaceId);
-		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board, workspace, user, false);
-		if (!validate) {
-			errMessage: 'You dont have permission to add member this card';
-		}
-		//Add member
-		card.members.unshift({
-			user: member._id,
-			name: member.name,
-			color: member.color,
-			role: "member"
-		});
-		await card.save();
-		//Add to board activity
-		board.activity.unshift({
-			user: user._id,
-			name: user.name,
-			action: `added '${member.name}' to ${card.title}`,
-			color: user.color,
-		});
-		board.save();
+// const addMember = async (cardId, listId, boardId, workspaceId, user, memberId, callback) => {
+// 	try {
+// 		// Get models
+// 		const card = await cardModel.findById(cardId);
+// 		const list = await listModel.findById(listId);
+// 		const board = await boardModel.findById(boardId);
+// 		const member = await userModel.findById(memberId);
+// 		const workspace = await workspaceModel.findById(workspaceId);
+// 		// Validate owner
+// 		const validate = await helperMethods.validateCardOwners(card, list, board, workspace, user, false);
+// 		if (!validate) {
+// 			errMessage: 'You dont have permission to add member this card';
+// 		}
+// 		//Add member
+// 		card.members.unshift({
+// 			user: member._id,
+// 			name: member.name,
+// 			color: member.color,
+// 			role: "member"
+// 		});
+// 		await card.save();
+// 		//Add to board activity
+// 		board.activity.unshift({
+// 			user: user._id,
+// 			name: user.name,
+// 			action: `added '${member.name}' to ${card.title}`,
+// 			color: user.color,
+// 		});
+// 		board.save();
 
-		return callback(false, { message: 'success' });
-	} catch (error) {
-		return callback({ errMessage: 'Something went wrong', details: error.message });
-	}
+// 		return callback(false, { message: 'success' });
+// 	} catch (error) {
+// 		return callback({ errMessage: 'Something went wrong', details: error.message });
+// 	}
+// };
+
+
+const addMember = async (cardId, listId, boardId, workspaceId, user, memberId, callback) => {
+    try {
+        // Get models
+        const card = await cardModel.findById(cardId);
+        const list = await listModel.findById(listId);
+        const board = await boardModel.findById(boardId);
+        const member = await userModel.findById(memberId);
+        const workspace = await workspaceModel.findById(workspaceId);
+
+        // Validate owner
+        const validate = await helperMethods.validateCardOwners(card, list, board, workspace, user, false);
+        if (!validate) {
+            return callback({ errMessage: "You don't have permission to add a member to this card" });
+        }
+
+        // Check if the member is already in the card's members
+        const existingMember = card.members.find((m) => m.user.equals(member._id));
+        if (existingMember) {
+            return callback({ errMessage: "Member already exists in this card" });
+        }
+
+        // Add member
+        card.members.unshift({
+            user: member._id,
+            name: member.name,
+            color: member.color,
+            role: "member"
+        });
+        await card.save();
+
+        // Add to board activity
+        board.activity.unshift({
+            user: user._id,
+            name: user.name,
+            action: `added '${member.name}' to ${card.title}`,
+            color: user.color,
+        });
+        await board.save();
+
+        return callback(false, { message: "success" });
+    } catch (error) {
+        return callback({ errMessage: "Something went wrong", details: error.message });
+    }
 };
 const deleteMember = async (cardId, listId, boardId,  workspaceId,user, memberId, callback) => {
 	try {
@@ -269,6 +315,11 @@ const deleteMember = async (cardId, listId, boardId,  workspaceId,user, memberId
 		if (!validate) {
 			errMessage: 'You dont have permission to add member this card';
 		}
+		 // Check if the member exists in the card's members
+		 const existingMemberIndex = card.members.findIndex((a) => a.user.toString() === memberId.toString());
+		 if (existingMemberIndex === -1) {
+			 return callback({ errMessage: "Member not found in this card" });
+		 }
 		//delete member
 		card.members = card.members.filter((a) => a.user.toString() !== memberId.toString());
 		await card.save();

@@ -71,14 +71,12 @@ const boardSchema = mongoose.Schema(
 				}
 			},
 		],
-		
 		lists: [
 			{
 				type: mongoose.Schema.Types.ObjectId,
 				ref: 'list',
 			},
 		],
-
 		description: {
 			type: String,
 			default: '',
@@ -90,5 +88,4 @@ const boardSchema = mongoose.Schema(
 	},
 	{ timestamps: true }
 );
-
 module.exports = mongoose.model('board', boardSchema);
