@@ -25,6 +25,25 @@ const cardSchema = mongoose.Schema({
 			},
 		},
 	],
+	// members: [
+	// 	{
+	// 		_id: false,
+	// 		user: {
+	// 			type: mongoose.Schema.Types.ObjectId,
+	// 			ref: 'user',
+	// 		},
+	// 		name: {
+	// 			type: String,
+	// 		},
+	// 		color:{
+	// 			type:String,
+	// 		},
+	// 		role: {
+	// 			type: String,
+	// 			default: 'member',
+	// 		},
+	// 	},
+	// ],
 	members: [
 		{
 			_id: false,
@@ -35,13 +54,19 @@ const cardSchema = mongoose.Schema({
 			name: {
 				type: String,
 			},
-			color:{
-				type:String,
+			surname: {
+				type: String,
+			},
+			email: {
+				type: String,
 			},
 			role: {
 				type: String,
 				default: 'member',
 			},
+			color: {
+				type:String,
+			}
 		},
 	],
 	watchers: [

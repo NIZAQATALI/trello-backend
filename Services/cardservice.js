@@ -18,7 +18,9 @@ const create = async ( workspaceId,title, listId, boardId, user, callback) => {
 		card.owner = listId;
 		card.activities.unshift({ text: `added this card to ${list.title}`, userName: user.name, color: user.color });
 		card.members.unshift({ user: user._id, 
-			userName: user.name,
+			name: user.name,
+			surname:user.surname,
+			email:user.email,
 			 color: user.color ,
 			 role: "owner"});
 		card.labels = helperMethods.labelsSeed;
@@ -216,7 +218,6 @@ const deleteComment = async (cardId, listId, boardId, commentId, workspaceId,use
 			color: user.color,
 		});
 		board.save();
-
 		return callback(false, { message: 'Success!' });
 	} catch (error) {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
@@ -267,7 +268,6 @@ const addMember = async (cardId, listId, boardId, workspaceId, user, memberId, c
         const board = await boardModel.findById(boardId);
         const member = await userModel.findById(memberId);
         const workspace = await workspaceModel.findById(workspaceId);
-
         // Validate owner
         const validate = await helperMethods.validateCardOwners(card, list, board, workspace, user, false);
         if (!validate) {
@@ -284,9 +284,15 @@ const addMember = async (cardId, listId, boardId, workspaceId, user, memberId, c
         card.members.unshift({
             user: member._id,
             name: member.name,
+			surname: member.surname,
+            email: member.email,
             color: member.color,
             role: "member"
         });
+
+
+
+		
         await card.save();
 
         // Add to board activity
