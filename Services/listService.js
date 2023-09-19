@@ -93,27 +93,19 @@ for (let i = 0; i < lists.length; i++) {
     // Access the cards associated with this list
     const cardIds = list.cards;
     console.log("cardsIds", cardIds);
-
     // Define a Cardfilter to use in the query for each list
     let Cardfilter = { _id: { $in: cardIds } };
-    
     // If the user is not the owner and is a member of the workspace,
-    
     if (!isOwner) {
-	
          Cardfilter.members = { $elemMatch: { user: userId } };
-      
     }
-    
     const cards = await cardModel.find(Cardfilter);
 	list.cards = cards;
-   
 	console.log(" number of cards:", cards.length);
 }
-
   // Now, populate the cards field in each list
 
-console.log("list resposnsssssssssssssssssssssssssssssssssss",lists);
+console.log("list resposnsss",lists);
 
 	//   console.log("lists",lists);
 
@@ -288,16 +280,126 @@ const listIdmatch = board.lists.find(board => board.toString() === listId);
 					color: newMember.color,
 					role: 'member',
 				  });
+  // Add to board activity
+  board.activity.unshift({
+	user: user._id,
+	name: user.name,
+	action: `added '${newMember.name}' to ${list.title}`,
+	color: user.color,
+});
+await board.save();
 				})
 				);
-        // Save changes to the board
+        // Save changes to the list
         await list.save();
        // Callback is called here only if not called previously
 	   if (!callbackCalled) {
-	
 		return callback(null, list.members);
 	}
+    } catch (error) {
+        console.error(error);
+        return callback({ message: 'Something went wrong', details: error.message });
+    }
+};
+
+
+// const deleteMemberFromList = async (workspaceId, boardId, listId, memberId, user, callback) => {
+//     try {
+//         // Find the board by ID
+//         const board = await boardModel.findById(boardId);
+// 		const workspace = await workspaceModel.findById(workspaceId);
+// 		const list = await listModel.findById(listId);
+//         // Find the list within the board by ID
+//         const listIdFind = board.lists.find(list => list._id.toString() === listId);
+		
+//         // Check if the list exists
+//         if (!list) {
+//             return callback({ message: 'List not found' });
+//         }
+        
+//         // Check if the user has the necessary permissions to delete a member from the list
+//         const workspaceIdMatch = user.workspaces.find(w => w.toString() === workspaceId);
+//         const boardIdMatch = workspace.boards.find(b => b.toString() === boardId);
+//         const listIdMatch = board.lists.find(l => l.toString() === listId);
+        
+//         if (!(workspaceIdMatch && boardIdMatch && listIdMatch)) {
+//             return callback({ message: 'You cannot remove a member from this list, you are not the owner!' });
+//         }
+        
+//         // Find the member to be removed by ID
+//         const memberToRemove = await userModel.findById(memberId);
+        
+//         if (!memberToRemove) {
+//             return callback({ message: 'Member not found' });
+//         }
+        
+//         // Check if the member is in the list
+//         const memberIndex = list.members.findIndex(member => member.user.toString() === memberId.toString());
+        
+//         if (memberIndex === -1) {
+//             return callback({ message: 'Member not found in this list' });
+//         }
+        
+//         // Remove the member from the list
+//         list.members.splice(memberIndex, 1);
+        
+//         // Save changes to the list
+//         await list.save();
+        
+//         return callback(null, list.members);
+//     } catch (error) {
+//         console.error(error);
+//         return callback({ message: 'Something went wrong', details: error.message });
+//     }
+// };
+const deleteMemberFromList = async (workspaceId, boardId, listId,  user,memberId, callback) => {
+    try {
+console.log("user->workspaces",user.workspaces);
+console.log("workspaceId",workspaceId);
+
+
 	
+	
+        // Find the board by ID
+        const board = await boardModel.findById(boardId);
+        const workspace = await workspaceModel.findById(workspaceId);
+        const list = await listModel.findById(listId);
+        // Check if the list exists
+        if (!list) {
+            return callback({ message: 'List not found' });
+        }
+        // Check if the user has the necessary permissions to delete a member from the list
+        const workspaceIdMatch = user.workspaces.find(w => w.toString() === workspaceId);
+        const boardIdMatch = workspace.boards.find(b => b.toString() === boardId);
+        const listIdMatch = board.lists.find(l => l.toString() === listId);
+        if (!(workspaceIdMatch && boardIdMatch && listIdMatch)) {
+            return callback({ message: 'You cannot remove a member from this list, you are not the owner!' });
+        }
+		console.log("memberId",memberId)
+        // Find the member to be removed by ID
+        const memberToRemove = await userModel.findById(memberId);
+console.log("memberToRemove",memberToRemove)
+        if (!memberToRemove) {
+            return callback({ message: 'Member not found' });
+        }
+        // Check if the member is in the list
+        const memberIndex = list.members.findIndex(member => member.user.toString() === memberId.toString());
+        if (memberIndex === -1) {
+            return callback({ message: 'Member not found in this list' });
+        }
+        // Remove the member from the list
+        list.members.splice(memberIndex, 1);
+        // Iterate through the cards in the list and remove the member from each card if they are a member
+        for (const cardId of list.cards) {
+            const card = await cardModel.findById(cardId);
+            if (card.members.some(member => member.user.toString() === memberId.toString())) {
+                card.members = card.members.filter(member => member.user.toString() !== memberId.toString());
+                await card.save();
+            }
+        }
+        // Save changes to the list
+        await list.save();
+        return callback(null, list.members);
     } catch (error) {
         console.error(error);
         return callback({ message: 'Something went wrong', details: error.message });
@@ -310,5 +412,6 @@ module.exports = {
 	updateCardOrder,
 	updateListOrder,
 	updateListTitle,
-	addMemberToList
+	addMemberToList,
+	deleteMemberFromList
 };

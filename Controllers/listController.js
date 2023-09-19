@@ -119,6 +119,21 @@ const addMemberToList = async (req, res) => {
         return res.status(200).send(result);
     });
 };
+const deleteMemberFromList = async (req, res) => {
+	
+	
+    // Get params
+
+    const user = req.user;
+    const { workspaceId, boardId, listId,  } = req.params;
+console.log("user:",user)
+      const { memberId,  } = req.body;
+    // Call the list service (assuming you have a list service)
+    await listService.deleteMemberFromList( workspaceId, boardId,listId, user, memberId, (err, result) => {
+        if (err) return res.status(500).send(err);
+        return res.status(200).send(result);
+    });
+};
 module.exports = {
 	create,
 	getAll,
@@ -126,5 +141,6 @@ module.exports = {
 	updateCardOrder,
 	updateListOrder,
 	updateListTitle,
-	addMemberToList
+	addMemberToList,
+	deleteMemberFromList
 };
