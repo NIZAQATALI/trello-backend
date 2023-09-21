@@ -75,11 +75,28 @@ const addMember = async (req, res) => {
 		return res.status(200).send(result);
 	});
 };
+const deleteMember = async (req, res) => {
+	// Validate whether params.id is in the user's workspaces or not
+	const validate = req.user.workspaces.filter((workspace) => workspace === req.params.id);
+	console.log(validate);
+	if (!validate)
+		return res
+			.status(400)
+			.send({ errMessage: 'You can not add member to this workspace, you are not a member or owner!' });
+	const { workspaceId } = req.params;
+	const { memberId } = req.body;
+	// Call the service
+	await workspaceService.deleteMember(workspaceId, memberId, req.user, (err, result) => {
+		if (err) return res.status(400).send(err);
+		return res.status(200).send(result);
+	});
+};
 module.exports = {
 	create,
 	getWorkspaces,
     getWorkspace,
 	updateWorkspaceDescription,
 	updateWorkspaceName,
-	addMember
+	addMember,
+	deleteMember
 };

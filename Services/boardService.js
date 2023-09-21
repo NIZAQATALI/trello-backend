@@ -220,17 +220,14 @@ const addMember = async (workspaceId, id, members, user, callback) => {
         const workspace = await workspaceModel.findById(workspaceId);
         const workspaceIdmatch = user.workspaces.find(workspace => workspace.toString() === workspaceId);
         const boardIdmatch = workspace.boards.find(board => board.toString() === id);
-
         if (!(workspaceIdmatch && boardIdmatch)) {
             return callback({ message: 'You cannot add a member to this board, you are not a member or owner!' });
         }
         // Create an array to collect errors during the loop
         const errors = [];
-
         await Promise.all(
             members.map(async (member) => {
                 const newMember = await userModel.findOne({ email: member.email });
-
                 if (!newMember) {
                     errors.push({ message: `Member with email '${member.email}' does not exist.` });
                     return; // Skip to the next member
@@ -285,14 +282,17 @@ const deleteMember = async (workspaceId, boardId, memberId, user, callback) => {
 	  const board = await boardModel.findById(boardId);
 	  const workspace = await workspaceModel.findById(workspaceId);
 	  // Find the workspace object based on the matching workspaceId
-	  const workspaceIdMatch = user.workspaces.find((workspace) => workspace.toString() === workspaceId);
+	  const workspaceIdMatch = user.workspaces.find((workspace) => workspace.toString() === workspaceId.toString());
 	  console.log("boards of this workspace:",workspace.boards)
 	  const boardIdMatch = workspace.boards.find((board) => board.toString() === boardId);
 	  if (!(workspaceIdMatch && boardIdMatch)) {
 		return callback({ message: 'You cannot delete a member from this board; you are not a member or owner!' });
 	  }
+	  console.log("BoardIdMatch:",boardIdMatch);
+	  console.log("WspaceIdMatch->",workspaceIdMatch);
+	
 	  // Check if the member with memberId exists in the board's members
-	  const memberIndex = board.members.findIndex((member) => member.user.toString() === memberId);
+	  const memberIndex = board.members.findIndex((member) => member.user.toString() === memberId.toString());
 	  if (memberIndex === -1) {
 		return callback({ message: 'The specified member is not part of this board.' });
 	  }
@@ -303,18 +303,21 @@ const deleteMember = async (workspaceId, boardId, memberId, user, callback) => {
 		console.log(" list of this board",listId)
 		const list = await listModel.findById(listId);
 		// Remove the member from the list's members
-		const listMemberIndex = list.members.findIndex((listMember) => listMember.user.toString() === memberId);
+		const listMemberIndex = list.members.findIndex((listMember) => listMember.user.toString() === memberId.toString());
 		if (listMemberIndex !== -1) {
 		  list.members.splice(listMemberIndex, 1);
 		}
 		for (const cardId of list.cards) {
 		  // Remove the member from the card's members
 		  const card = await cardModel.findById(cardId);
-		  const cardMemberIndex = card.members.findIndex((cardMember) => cardMember.user.toString() === memberId);
+		  const cardMemberIndex = card.members.findIndex((cardMember) => cardMember.user.toString() === memberId.toString());
+		
 		  if (cardMemberIndex !== -1) {
 			card.members.splice(cardMemberIndex, 1);
+			card.save();
 		  }
 		}
+		await list.save();
 	  }
 	  // Add an activity entry for the deletion
 	  board.activity.push({

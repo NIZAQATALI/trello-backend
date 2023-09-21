@@ -121,17 +121,14 @@ const addMember = async (id, members, user, callback) => {
     try {
         // Get workspace by id
         const workspace = await workspaceModel.findById(id);
-
         // Set variables
         await Promise.all(
             members.map(async (member) => {
                 const newMember = await userModel.findOne({ email: member.email });
-
                 // Check if the member is already in the workspace
                 const isMemberAlreadyPresent = workspace.members.some((existingMember) =>
                     existingMember.user.equals(newMember._id)
                 );
-
                 if (isMemberAlreadyPresent) {
                     // If the member is already present, send a custom error
                     if (!callbackCalled) {
@@ -167,11 +164,69 @@ const addMember = async (id, members, user, callback) => {
         }
     }
 };
+const deleteMember = async (workspaceId, memberId, user, callback) => {
+	try {
+	  // Get the workspace by boardId
+	 
+	  const workspace = await workspaceModel.findById(workspaceId);
+	  
+	 
+	  // Check if the member with memberId exists in the workspace's members
+	  const memberIndex = workspace.members.findIndex((member) => member.user.toString() === memberId.toString());
+	  if (memberIndex === -1) {
+		return callback({ message: 'The specified member is not part of this  workspace.' });
+	  }
+	  // Remove the member from the workspace's members array
+	  const removedMember = workspace.members.splice(memberIndex, 1)[0];
+	  // Remove the member from the board's lists and child cards' memberships
+        for(const boardId of workspace.boards){
+console.log(" board of this workspace",boardId)
+		const board = await boardModel.findById(boardId);
+// Remove the member from the boards's members
+		const boardMemberIndex = board.members.findIndex((boardMember) => boardMember.user.toString() === memberId.toString());
+		if (boardMemberIndex !== -1) {
+		  board.members.splice(boardMemberIndex, 1);
+		}
+
+	  for (const listId of board.lists) {
+		console.log(" list of this board",listId)
+		const list = await listModel.findById(listId);
+		// Remove the member from the list's members
+		const listMemberIndex = list.members.findIndex((listMember) => listMember.user.toString() === memberId.toString());
+		if (listMemberIndex !== -1) {
+		  list.members.splice(listMemberIndex, 1);
+		}
+		for (const cardId of list.cards) {
+		  // Remove the member from the card's members
+		  const card = await cardModel.findById(cardId);
+		  const cardMemberIndex = card.members.findIndex((cardMember) => cardMember.user.toString() === memberId.toString());
+		  if (cardMemberIndex !== -1) {
+			card.members.splice(cardMemberIndex, 1);
+		  }
+		}
+	  }
+}
+	  // Add an activity entry for the deletion
+	  board.activity.push({
+		user: user.id,
+		name: user.name,
+		action: `removed user '${removedMember.name}' from this workspace`,
+		color: user.color,
+	  });
+	  // Save the board with the updated member list and memberships
+	  await workspace.save();
+	  return callback(null, workspace.members);
+	} catch (error) {
+	  console.error(error); // Log the error for debugging purposes
+	  return callback({ message: 'Something went wrong', details: error.message });
+	}
+  };
 module.exports = {
 create,
 getWorkspaces,
 getWorkspace,
 updateWorkspaceDescription,
 updateWorkspaceName,
-addMember
+addMember,
+deleteMember
 }
