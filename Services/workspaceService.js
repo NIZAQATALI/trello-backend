@@ -116,32 +116,56 @@ const updateWorkspaceDescription = async (workspaceId, description, user, callba
 	}
 };
 const addMember = async (id, members, user, callback) => {
-	try {
-		// Get workspace by id
-		const workspace = await workspaceModel.findById(id);
-		// Set variables
-		await Promise.all(
-			members.map(async (member) => {
-				const newMember = await userModel.findOne({ email: member.email });
-				console.log("new member",newMember);
-				newMember.workspaces.push(workspace._id);
-				await newMember.save();
-				workspace.members.push({
-					user: newMember._id,
-					name: newMember.name,
-					surname: newMember.surname,
-					email: newMember.email,
-					color: newMember.color,
-					role: 'member',
-				});
-			})
-		);
-		// Save changes
-		await workspace.save();
-		return callback(false, workspace.members);
-	} catch (error) {
-		return callback({ message: 'Something went wrong', details: error.message });
-	}
+    let callbackCalled = false; // Flag to track if the callback has been called
+
+    try {
+        // Get workspace by id
+        const workspace = await workspaceModel.findById(id);
+
+        // Set variables
+        await Promise.all(
+            members.map(async (member) => {
+                const newMember = await userModel.findOne({ email: member.email });
+
+                // Check if the member is already in the workspace
+                const isMemberAlreadyPresent = workspace.members.some((existingMember) =>
+                    existingMember.user.equals(newMember._id)
+                );
+
+                if (isMemberAlreadyPresent) {
+                    // If the member is already present, send a custom error
+                    if (!callbackCalled) {
+                        callback({ message: `Member with email '${member.email}' is already a member of this workspace.` });
+                        callbackCalled = true; // Mark the callback as called
+                    }
+                } else {
+                    // If the member is not already present, add them to the workspace
+                    newMember.workspaces.push(workspace._id);
+                    await newMember.save();
+                    workspace.members.push({
+                        user: newMember._id,
+                        name: newMember.name,
+                        surname: newMember.surname,
+                        email: newMember.email,
+                        color: newMember.color,
+                        role: 'member',
+                    });
+                }
+            })
+        );
+        // Save changes
+        await workspace.save();
+
+        if (!callbackCalled) {
+            callback(false, workspace.members);
+            callbackCalled = true; // Mark the callback as called
+        }
+    } catch (error) {
+        if (!callbackCalled) {
+            callback({ message: 'Something went wrong', details: error.message });
+            callbackCalled = true; // Mark the callback as called
+        }
+    }
 };
 module.exports = {
 create,

@@ -85,13 +85,8 @@ const create = async (req,  user ,  callback) => {
 // 		return callback({ msg: 'Something went wrong', details: error.message });
 // 	}
 // };
-
-
-
-
 const getAll = async (userId, workspaceId, callback) => {
 	try {
-
 	  // Get workspace
 	  const workspace = await workspaceModel.findById(workspaceId);
 	  // Get user
@@ -110,7 +105,6 @@ const getAll = async (userId, workspaceId, callback) => {
 	  if (!isOwner) {
 		filter.members = { $elemMatch: { user: userId } };
 	  }
-	  
 	  // Get boards of the workspace based on the filter
 	  const boards = await boardModel.find(filter);
 	  // Delete unnecessary objects
@@ -220,76 +214,123 @@ const updateBackground = async (workspaceId, boardId, background, isImage, user,
 		return callback({ message: 'Something went wrong', details: error.message });
 	}
 };
-const addMember = async ( workspaceId,id, members, user, callback) => {
-	try {
-		// Get board by id
-		const board = await boardModel.findById(id);
-		const workspace = await workspaceModel.findById(workspaceId);
-// Find the workspace object based on the matching workspaceId
-const workspaceIdmatch = user.workspaces.find(workspace => workspace.toString() === workspaceId);
-const boardIdmatch = workspace.boards.find(board => board.toString() === id);
-	if (!(workspaceIdmatch&&boardIdmatch)) {
-			return callback({ message: 'You can not add member to this board, you are not a member or owner!' });
-	}
-		// // Set variables
-		// await Promise.all(
-		// 	members.map(async (member) => {
-		// 		const newMember = await userModel.findOne({ email: member.email });
-		// 		console.log("new member",newMember);
-		// 		newMember.workspace.boards.push(board._id);
-		// 		await newMember.save();
-		// 		board.members.push({
-		// 			user: newMember._id,
-		// 			name: newMember.name,
-		// 			surname: newMember.surname,
-		// 			email: newMember.email,
-		// 			color: newMember.color,
-		// 			role: 'member',
-		// 		});
-		    // Set variables
-			await Promise.all(
-				members.map(async (member) => {
-				  const newMember = await userModel.findOne({ email: member.email });
-				//   // Check if the new member is in the same workspace as the board
-				//   if (newMember.workspace.equals(workspaceId)) {
-				// 	// Add the boardId to the new member's workspace's boards array
-				// 	newMember.workspace.boards.push(board._id);
-				// 	await newMember.workspace.save();
-				//   }
-				  const isMemberOfThisWorkspace = newMember.workspaces.find(workspace => workspace.toString() === workspaceId);
-				//  console.log(" new memberworkspace boards",newMemberWorkspace.boards)
-				  if (!(isMemberOfThisWorkspace)) {
-					return callback({ message: ' To add in the Board member also should have member of this Workspace!' });
-			}
-			const newMemberWorkspace = await workspaceModel.findById(isMemberOfThisWorkspace);
-			console.log(" new memberworkspace boards full:",newMemberWorkspace.boards)
-				  newMemberWorkspace.boards.push(board._id);
-				  await newMember.save();
-				  board.members.push({
-					user: newMember._id,
-					name: newMember.name,
-					surname: newMember.surname,
-					email: newMember.email,
-					color: newMember.color,
-					role: 'member',
-				  });
-				//Add to board activity
-				board.activity.push({
-					user: user.id,
-					name: user.name,
-					action: `added user '${newMember.name}' to this board`,
-					color: user.color,
-				});
-			})
-		);
-		// Save changes
-		await board.save();
-		return callback(null, board.members);
-	} catch (error) {
-		console.error(error); // Log the error for debugging purposes
-		return callback({ message: 'Something went wrong', details: error.message });
-	  }
+const addMember = async (workspaceId, id, members, user, callback) => {
+    try {
+        const board = await boardModel.findById(id);
+        const workspace = await workspaceModel.findById(workspaceId);
+        const workspaceIdmatch = user.workspaces.find(workspace => workspace.toString() === workspaceId);
+        const boardIdmatch = workspace.boards.find(board => board.toString() === id);
+
+        if (!(workspaceIdmatch && boardIdmatch)) {
+            return callback({ message: 'You cannot add a member to this board, you are not a member or owner!' });
+        }
+        // Create an array to collect errors during the loop
+        const errors = [];
+
+        await Promise.all(
+            members.map(async (member) => {
+                const newMember = await userModel.findOne({ email: member.email });
+
+                if (!newMember) {
+                    errors.push({ message: `Member with email '${member.email}' does not exist.` });
+                    return; // Skip to the next member
+                }
+                const isMemberOfThisWorkspace = newMember.workspaces.find(workspace => workspace.toString() === workspaceId);
+                if (!isMemberOfThisWorkspace) {
+                    errors.push({ message: 'To add a member to the board, they should also be a member of this workspace!' });
+                    return; // Skip to the next member
+                }
+                const newMemberWorkspace = await workspaceModel.findById(isMemberOfThisWorkspace);
+				const isMemberAlreadyPresent = board.members.some(member => 
+					 member.user.toString() === newMember._id.toString());
+				 console.log(isMemberAlreadyPresent);
+				if (isMemberAlreadyPresent) {
+                    errors.push({ message: `Member with email '${newMember.email}' is already a member of this board.` });
+                    return; // Skip to the next member
+                }
+				
+                newMemberWorkspace.boards.push(board._id);
+                await newMemberWorkspace.save();
+                board.members.push({
+                    user: newMember._id,
+                    name: newMember.name,
+                    surname: newMember.surname,
+                    email: newMember.email,
+                    color: newMember.color,
+                    role: 'member',
+                });
+                board.activity.push({
+                    user: user.id,
+                    name: user.name,
+                    action: `added user '${newMember.name}' to this board`,
+                    color: user.color,
+                });
+            })
+        );
+        // After the loop, check if there are errors and return them if any
+        if (errors.length > 0) {
+            return callback(errors);
+        }
+        // Save changes
+        await board.save();
+        return callback(null, board.members);
+    } catch (error) {
+        console.error(error); // Log the error for debugging purposes
+        return callback({ message: 'Something went wrong', details: error.message });
+    }
 };
+const deleteMember = async (workspaceId, boardId, memberId, user, callback) => {
+	try {
+	  // Get the board by boardId
+	  const board = await boardModel.findById(boardId);
+	  const workspace = await workspaceModel.findById(workspaceId);
+	  // Find the workspace object based on the matching workspaceId
+	  const workspaceIdMatch = user.workspaces.find((workspace) => workspace.toString() === workspaceId);
+	  console.log("boards of this workspace:",workspace.boards)
+	  const boardIdMatch = workspace.boards.find((board) => board.toString() === boardId);
+	  if (!(workspaceIdMatch && boardIdMatch)) {
+		return callback({ message: 'You cannot delete a member from this board; you are not a member or owner!' });
+	  }
+	  // Check if the member with memberId exists in the board's members
+	  const memberIndex = board.members.findIndex((member) => member.user.toString() === memberId);
+	  if (memberIndex === -1) {
+		return callback({ message: 'The specified member is not part of this board.' });
+	  }
+	  // Remove the member from the board's members array
+	  const removedMember = board.members.splice(memberIndex, 1)[0];
+	  // Remove the member from the board's lists and child cards' memberships
+	  for (const listId of board.lists) {
+		console.log(" list of this board",listId)
+		const list = await listModel.findById(listId);
+		// Remove the member from the list's members
+		const listMemberIndex = list.members.findIndex((listMember) => listMember.user.toString() === memberId);
+		if (listMemberIndex !== -1) {
+		  list.members.splice(listMemberIndex, 1);
+		}
+		for (const cardId of list.cards) {
+		  // Remove the member from the card's members
+		  const card = await cardModel.findById(cardId);
+		  const cardMemberIndex = card.members.findIndex((cardMember) => cardMember.user.toString() === memberId);
+		  if (cardMemberIndex !== -1) {
+			card.members.splice(cardMemberIndex, 1);
+		  }
+		}
+	  }
+	  // Add an activity entry for the deletion
+	  board.activity.push({
+		user: user.id,
+		name: user.name,
+		action: `removed user '${removedMember.name}' from this board`,
+		color: user.color,
+	  });
+	  // Save the board with the updated member list and memberships
+	  await board.save();
+	  return callback(null, board.members);
+	} catch (error) {
+	  console.error(error); // Log the error for debugging purposes
+	  return callback({ message: 'Something went wrong', details: error.message });
+	}
+  };
 const deleteById = async ( boardId, workspaceId,user, callback) => {
 	try {
 		// Get board to check the parent of board is this workspace
@@ -326,5 +367,6 @@ module.exports = {
 	updateBoardDescription,
 	updateBackground,
 	addMember,
+	deleteMember,
 	deleteById
 };

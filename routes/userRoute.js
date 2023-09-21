@@ -9,5 +9,4 @@ router.post("/get-user-with-email",auth.verifyToken, userController.getUserWithM
 router.post('/submit-otp', userController.submitotp)
 router.post('/send-otp', userController.sendotp)
 router.put("/update-user/:id", userController.updateUser);
-
 module.exports = router;

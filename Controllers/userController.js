@@ -32,7 +32,6 @@ const login = async (req, res) => {
       return res
         .status(400)
         .send({ errMessage: "Your email/password is wrong!" });
-
      result.token = auth.generateToken(result._id.toString(), result.email);
      result.password = undefined;  
      result.__v = undefined;

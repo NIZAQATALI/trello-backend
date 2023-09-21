@@ -138,12 +138,30 @@ const addMember = async (req, res) => {
 	// 			   .status(400)
 	// 			   .send({ errMessage: 'You can not add member to this board, you are not a member or owner!' });
 	// 	   }
-
-	
-
 	const { members } = req.body;
 	// Call the service
 	await boardService.addMember( workspaceId,boardId, members, req.user, (err, result) => {
+		if (err) return res.status(400).send(err);
+		return res.status(200).send(result);
+	});
+};
+
+const deleteMember = async (req, res) => {
+	// Validate whether params.id is in the user's boards or not
+	//    // Find the workspace object based on the matching workspaceId
+	    const { workspaceId, boardId } = req.params;
+	//    const workspace = req.user.workspaces.find(workspace => workspace.toString() === workspaceId);
+	//    console.log("workspace boards:",workspace.boards)
+	//    const board = workspace.boards.find(board => board.toString() === boardId);
+	//    console.log(workspace);
+	// 	   if (!workspace && !board) {
+	// 		   return res
+	// 			   .status(400)
+	// 			   .send({ errMessage: 'You can not add member to this board, you are not a member or owner!' });
+	// 	   }
+	const { memberId } = req.body;
+	// Call the service
+	await boardService.deleteMember( workspaceId,boardId, memberId, req.user, (err, result) => {
 		if (err) return res.status(400).send(err);
 		return res.status(200).send(result);
 	});
@@ -172,5 +190,6 @@ module.exports = {
 	updateBoardDescription,
 	updateBackground,
 	addMember,
+	deleteMember,
 	deleteById
 };
