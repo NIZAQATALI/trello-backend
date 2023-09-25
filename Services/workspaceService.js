@@ -68,15 +68,14 @@ const create = async (req, callback) => {
 	}
 };
 const getWorkspaces = async (userId, callback) => {
+	console.log(userId)
 	try {
 		// Get user
 		const user = await userModel.findById(userId);
-
 		// Get board's ids of user
-		const boardIds = user.workspaces;
+		const workspaceIds = user.workspaces;
 		// Get boards of user
-		const workspaces = await workspaceModel.find({ _id: { $in: boardIds } });
-		console.log(workspaces);
+		const workspaces = await workspaceModel.find({ _id: { $in: workspaceIds } });
 		return callback(false, workspaces);
 	} catch (error) {
 		return callback({ msg: 'Something went wrong', details: error.message });
@@ -117,7 +116,6 @@ const updateWorkspaceDescription = async (workspaceId, description, user, callba
 };
 const addMember = async (id, members, user, callback) => {
     let callbackCalled = false; // Flag to track if the callback has been called
-
     try {
         // Get workspace by id
         const workspace = await workspaceModel.findById(id);
@@ -152,7 +150,6 @@ const addMember = async (id, members, user, callback) => {
         );
         // Save changes
         await workspace.save();
-
         if (!callbackCalled) {
             callback(false, workspace.members);
             callbackCalled = true; // Mark the callback as called
@@ -167,10 +164,9 @@ const addMember = async (id, members, user, callback) => {
 const deleteMember = async (workspaceId, memberId, user, callback) => {
 	try {
 	  // Get the workspace by boardId
-	 
+	  console.log("workspace->",workspaceId)
 	  const workspace = await workspaceModel.findById(workspaceId);
-	  
-	 
+	 console.log("workspace->",workspace)
 	  // Check if the member with memberId exists in the workspace's members
 	  const memberIndex = workspace.members.findIndex((member) => member.user.toString() === memberId.toString());
 	  if (memberIndex === -1) {
@@ -178,19 +174,30 @@ const deleteMember = async (workspaceId, memberId, user, callback) => {
 	  }
 	  // Remove the member from the workspace's members array
 	  const removedMember = workspace.members.splice(memberIndex, 1)[0];
+	   // Remove the workspace from the user's workspaces
+	   console.log("removed member->",removedMember.user);
+	//get full  removed member
+	const removeduser = await  userModel.findById(removedMember.user);
+	console.log("removed user->",removeduser);
+	   const userIndex = removeduser.workspaces.findIndex((workspace) => workspace.toString() === workspaceId.toString());
+	   if (userIndex !== -1) {
+		   removeduser.workspaces.splice(userIndex, 1);
+		   await removeduser.save();
+	   }
 	  // Remove the member from the board's lists and child cards' memberships
         for(const boardId of workspace.boards){
 console.log(" board of this workspace",boardId)
 		const board = await boardModel.findById(boardId);
+		console.log(board.title)
 // Remove the member from the boards's members
 		const boardMemberIndex = board.members.findIndex((boardMember) => boardMember.user.toString() === memberId.toString());
 		if (boardMemberIndex !== -1) {
 		  board.members.splice(boardMemberIndex, 1);
 		}
-
 	  for (const listId of board.lists) {
 		console.log(" list of this board",listId)
 		const list = await listModel.findById(listId);
+		console.log(list.title)
 		// Remove the member from the list's members
 		const listMemberIndex = list.members.findIndex((listMember) => listMember.user.toString() === memberId.toString());
 		if (listMemberIndex !== -1) {
@@ -199,20 +206,24 @@ console.log(" board of this workspace",boardId)
 		for (const cardId of list.cards) {
 		  // Remove the member from the card's members
 		  const card = await cardModel.findById(cardId);
+		  console.log(card.title)
 		  const cardMemberIndex = card.members.findIndex((cardMember) => cardMember.user.toString() === memberId.toString());
 		  if (cardMemberIndex !== -1) {
 			card.members.splice(cardMemberIndex, 1);
+			await card.save();
 		  }
 		}
+		await list.save();
 	  }
+	  await board.save();
 }
-	  // Add an activity entry for the deletion
-	  board.activity.push({
-		user: user.id,
-		name: user.name,
-		action: `removed user '${removedMember.name}' from this workspace`,
-		color: user.color,
-	  });
+	//   // Add an activity entry for the deletion
+	//   board.activity.push({
+	// 	user: user.id,
+	// 	name: user.name,
+	// 	action: `removed user '${removedMember.name}' from this workspace`,
+	// 	color: user.color,
+	//   });
 	  // Save the board with the updated member list and memberships
 	  await workspace.save();
 	  return callback(null, workspace.members);

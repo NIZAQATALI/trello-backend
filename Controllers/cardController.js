@@ -41,6 +41,7 @@ const update = async (req, res) => {
 };
 const deleteById = async (req, res) => {
 	// deconstruct the params
+	
 	const user = req.user;
 	const{ workspaceId, boardId, listId, cardId } = req.params;
 	// Call the card service

@@ -251,23 +251,27 @@ const listIdmatch = board.lists.find(board => board.toString() === listId);
         // Set variables
 			await Promise.all(
 				members.map(async (member) => {
-				  const newMember = await userModel.findOne({ email: member.email });
-				  console.log(" new memberworkspace boards",workspace.boards)
-				  console.log(" new memberworkspace boards",boardId);
-				  
+				  const newMember = await userModel.findOne({ email: member.email});
 				  const isMemberInList = list.members.find(member => member.email === newMember.email);
 				  if (isMemberInList) {
                     // Callback is called only if not called previously
                     if (!callbackCalled) {
                         callbackCalled = true;
-                        return callback({ message: 'Member is already in the list' });
+                        return callback({ message: 'Member is already in the list'});
                     }
                 }
-				  const isMemberOfThisBoard = workspace.boards.find(b=> b.toString() === boardId);
-				  if (!(isMemberOfThisBoard)) {
-					return callback({ message: ' To add in the list member also should have member of parent board!' });
+				console.log(board.members.length)
+				  const isMemberOfThisBoard = board.members.find(m=> m.user.toString() === newMember._id.toString());
+				const Verification = board.members.find(member => member.email === newMember.email);
+				  console.log("isMemberof this  Board",isMemberOfThisBoard)
+				  if (!isMemberOfThisBoard) {
+					 // Callback is called only if not called previously
+					 if (!callbackCalled) {
+                        callbackCalled = true;
+                        return callback({ message: ' To add in the list member also should have member of parent board'});
+                    }
 			}
-			const newMemberBoard = await boardModel.findById(isMemberOfThisBoard);
+			const newMemberBoard = await boardModel.findById(boardId);
  // Check if the member is already in the list
  console.log("new member_id",newMember._id);
 				  newMemberBoard.lists.push(list._id);
@@ -301,8 +305,6 @@ await board.save();
         return callback({ message: 'Something went wrong', details: error.message });
     }
 };
-
-
 // const deleteMemberFromList = async (workspaceId, boardId, listId, memberId, user, callback) => {
 //     try {
 //         // Find the board by ID
@@ -316,7 +318,6 @@ await board.save();
 //         if (!list) {
 //             return callback({ message: 'List not found' });
 //         }
-        
 //         // Check if the user has the necessary permissions to delete a member from the list
 //         const workspaceIdMatch = user.workspaces.find(w => w.toString() === workspaceId);
 //         const boardIdMatch = workspace.boards.find(b => b.toString() === boardId);
@@ -356,10 +357,6 @@ const deleteMemberFromList = async (workspaceId, boardId, listId,  user,memberId
     try {
 console.log("user->workspaces",user.workspaces);
 console.log("workspaceId",workspaceId);
-
-
-	
-	
         // Find the board by ID
         const board = await boardModel.findById(boardId);
         const workspace = await workspaceModel.findById(workspaceId);

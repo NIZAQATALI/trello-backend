@@ -50,7 +50,6 @@ const getCard = async ( workspaceId,cardId, listId, boardId, user, callback) => 
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
 		const workspace = await workspaceModel.findById(workspaceId);
-	
 console.log("getcard service")
 		// Validate owner
 		const validate = await helperMethods.validateCardOwners( card, list,  board,workspace , user, false);
@@ -258,8 +257,6 @@ const deleteComment = async (cardId, listId, boardId, commentId, workspaceId,use
 // 		return callback({ errMessage: 'Something went wrong', details: error.message });
 // 	}
 // };
-
-
 const addMember = async (cardId, listId, boardId, workspaceId, user, memberId, callback) => {
     try {
         // Get models
@@ -273,13 +270,17 @@ const addMember = async (cardId, listId, boardId, workspaceId, user, memberId, c
         if (!validate) {
             return callback({ errMessage: "You don't have permission to add a member to this card" });
         }
-
         // Check if the member is already in the card's members
         const existingMember = card.members.find((m) => m.user.equals(member._id));
         if (existingMember) {
             return callback({ errMessage: "Member already exists in this card" });
         }
-
+ // Check if the member is in the parent list's members
+ const listMember = list.members.find((m) => m.user.equals(member._id));
+ console.log("listMember->",listMember);
+ if (!listMember) {
+	 return callback({ errMessage: "To add a member to this card, the member should be added to the parent list as well" });
+ }
         // Add member
         card.members.unshift({
             user: member._id,
@@ -289,12 +290,7 @@ const addMember = async (cardId, listId, boardId, workspaceId, user, memberId, c
             color: member.color,
             role: "member"
         });
-
-
-
-		
         await card.save();
-
         // Add to board activity
         board.activity.unshift({
             user: user._id,
@@ -456,7 +452,6 @@ const createChecklist = async (cardId, listId, boardId, workspaceId, user, title
 		if (!validate) {
 			errMessage: 'You dont have permission to add Checklist this card';
 		}
-
 		//Add checklist
 		card.checklists.push({
 			title: title,
@@ -492,7 +487,6 @@ const deleteChecklist = async (cardId, listId, boardId, checklistId, workspaceId
 		//Delete checklistl
 		card.checklists = card.checklists.filter((list) => list._id.toString()!== checklistId.toString());
 		await card.save();
-
 		//Add to board activity
 		board.activity.unshift({
 			user: user._id,  

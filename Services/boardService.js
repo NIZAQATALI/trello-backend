@@ -132,7 +132,7 @@ const getActivityById = async ( workspaceId, boardId, callback) => {
         // Check if the boardId belongs to the found workspace
         const isBoardInWorkspace = Workspace.boards.find(board => board.toString() === boardId);
         if (!isBoardInWorkspace) {
-            return callback({ message: 'The provided boardId is not associated with this workspace.' }); }
+            return callback({ message: 'The provided boardId is not associated with this workspace.'}); }
 		// Get board by id
 		const board = await boardModel.findById(boardId);
 		return callback(false, board.activity);
@@ -220,6 +220,7 @@ const addMember = async (workspaceId, id, members, user, callback) => {
         const workspace = await workspaceModel.findById(workspaceId);
         const workspaceIdmatch = user.workspaces.find(workspace => workspace.toString() === workspaceId);
         const boardIdmatch = workspace.boards.find(board => board.toString() === id);
+		console.log(boardIdmatch);
         if (!(workspaceIdmatch && boardIdmatch)) {
             return callback({ message: 'You cannot add a member to this board, you are not a member or owner!' });
         }
@@ -232,20 +233,20 @@ const addMember = async (workspaceId, id, members, user, callback) => {
                     errors.push({ message: `Member with email '${member.email}' does not exist.` });
                     return; // Skip to the next member
                 }
-                const isMemberOfThisWorkspace = newMember.workspaces.find(workspace => workspace.toString() === workspaceId);
-                if (!isMemberOfThisWorkspace) {
-                    errors.push({ message: 'To add a member to the board, they should also be a member of this workspace!' });
+                const isMemberOfThisWorkspace = newMember.workspaces.find(workspace => workspace.toString() === workspaceId.toString());
+				console.log(!(isMemberOfThisWorkspace))
+                if (!(isMemberOfThisWorkspace)) {
+                    errors.push({ message: 'To add a member to the board, they should also be a member of Parent workspace!' });
                     return; // Skip to the next member
                 }
                 const newMemberWorkspace = await workspaceModel.findById(isMemberOfThisWorkspace);
 				const isMemberAlreadyPresent = board.members.some(member => 
 					 member.user.toString() === newMember._id.toString());
-				 console.log(isMemberAlreadyPresent);
+			
 				if (isMemberAlreadyPresent) {
                     errors.push({ message: `Member with email '${newMember.email}' is already a member of this board.` });
                     return; // Skip to the next member
                 }
-				
                 newMemberWorkspace.boards.push(board._id);
                 await newMemberWorkspace.save();
                 board.members.push({
