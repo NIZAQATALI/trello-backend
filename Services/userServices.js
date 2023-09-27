@@ -1,17 +1,38 @@
 const userModel = require("../modals/userModel");
 const { createRandomHexColor } = require("./helperMethods");
-const register = async (user, callback) => {
-  const newUser = userModel({ ...user, color:createRandomHexColor()});
-  await newUser
-    .save()
-    .then((result) => {
-      return callback(false, { message: "User created successfuly!" });
-    })
-    .catch((err) => {
-      return callback({ errMessage: "Email already in use!", details: err });
-    });
-};
+// const register = async (user, callback) => {
+//   const newUser = userModel({ ...user, color:createRandomHexColor()});
+//   await newUser
+//     .save()
+//     .then((result) => {
+//       return callback(false, { message: "User created successfuly!" });
+//     })
+//     .catch((err) => {
+//       return callback({ errMessage: "Email already in use!", details: err });
+//     });
+// };
 
+const register = async (user, callback) => {
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL; // Get the admin email from the environment variable
+    console.log(process.env.ADMIN_EMAIL)
+    const newUser = userModel({ ...user, color: createRandomHexColor() });
+
+    if (user.email === adminEmail) {
+      newUser.userType = 'admin'; // Set userType to 'admin' for the admin email
+    } else {
+      newUser.userType = 'user'; // Set userType to 'default' for other emails
+    }
+    const result = await newUser.save();
+    callback(null, { message: "User created successfully!" });
+  } catch (err) {
+    if (err.code === 11000) {
+      callback({ errMessage: "Email already in use!", details: err });
+    } else {
+      callback(err);
+    }
+  }
+};
 const login = async (email, callback) => {
   try {
     let user = await userModel.findOne({ email });
@@ -29,6 +50,21 @@ const getUser = async (id, callback) => {
     let user = await userModel.findById(id);
     if (!user) return callback({ errMessage: "User not found!" });
     return callback(false, { ...user.toJSON() });
+  } catch (err) {
+    return callback({
+      errMessage: "Something went wrong",
+      details: err.message,
+    });
+  }
+};
+
+
+const getAllUser = async ( callback) => {
+  try {
+    let users = await userModel.find().select('-password -__v');;
+    console.log("we  have :",users.length,"users")
+    if (!users) return callback({ errMessage: "Users not found!" });
+    return callback(false, users);
   } catch (err) {
     return callback({
       errMessage: "Something went wrong",
@@ -97,6 +133,7 @@ module.exports = {
   register,
   login,
   getUser,
+  getAllUser,
   getUserWithMail,
   updateUser ,
   submitOtp 

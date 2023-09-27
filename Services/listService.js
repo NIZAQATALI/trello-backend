@@ -68,7 +68,7 @@ const getAll = async ( workspaceId, boardId, userId, callback) => {
 	  console.log("workspace owner-> :",workspace.owner);
 	  console.log(" UserId-> :",userId);
 	  const isOwner = workspace.owner.equals(userId);
- // Get board's ids of workspace
+ // Get list's ids of board
 	  const listIds = board.lists;
 	  // Define a filter to use in the query
 	  let filter = { _id: { $in: listIds}};
@@ -86,10 +86,8 @@ const getAll = async ( workspaceId, boardId, userId, callback) => {
 	console.log("listsssssssss:", lists);
 	console.log("isOwner before loop:", isOwner);
 for (let i = 0; i < lists.length; i++) {
-
     const list = lists[i];
     console.log(`List Title: ${list.title}`);
-    
     // Access the cards associated with this list
     const cardIds = list.cards;
     console.log("cardsIds", cardIds);
@@ -104,11 +102,8 @@ for (let i = 0; i < lists.length; i++) {
 	console.log(" number of cards:", cards.length);
 }
   // Now, populate the cards field in each list
-
 console.log("list resposnsss",lists);
-
 	//   console.log("lists",lists);
-
 	//   // Order the lists
 	// 	let responseObject = board.lists.map((listId) => {
 	// 		return lists.filter((listObject) => listObject._id.toString() === listId.toString())[0];

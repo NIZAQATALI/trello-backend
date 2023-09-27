@@ -32,7 +32,15 @@ const verifyToken = async(req, res, next) => {
       });
   }
 };
+// adminAccessMiddleware.js
+const adminAccessMiddleware = (req, res, next) => {
+  if (req.user.userType !== 'admin') {
+    return res.status(403).json({ errMessage: 'Access denied. Only admins can access this route.' });
+  }
+  next(); // Proceed to the next middleware or route handler
+};
 module.exports = {
   generateToken,
-  verifyToken
+  verifyToken,
+  adminAccessMiddleware
 };

@@ -30,6 +30,11 @@ const userSchema = mongoose.Schema({
 			ref: 'workspace',
 		},
 	],
+	userType: {
+		type: String,
+		default: "user",
+		enum: ["user", "hr", "admin"]
+	  },
 	otp:{
 		type:Number
 	},

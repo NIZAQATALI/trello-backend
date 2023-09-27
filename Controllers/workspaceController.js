@@ -1,5 +1,9 @@
 const workspaceService = require('../Services/workspaceService.js');
 const create = async (req, res) => {
+	if (req.user.userType !== 'admin') {
+		return res.status(403).json({ errMessage: 'Access denied. Only admins can create workspaces.' });
+	  }
+	
 	const { name, type, description } = req.body;
 	if (!(name && type ))
 		return res.status(400).send({ errMessage: 'name and/or type cannot be null' });

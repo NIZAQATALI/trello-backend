@@ -50,7 +50,6 @@ const getCard = async ( workspaceId,cardId, listId, boardId, user, callback) => 
 		const list = await listModel.findById(listId);
 		const board = await boardModel.findById(boardId);
 		const workspace = await workspaceModel.findById(workspaceId);
-console.log("getcard service")
 		// Validate owner
 		const validate = await helperMethods.validateCardOwners( card, list,  board,workspace , user, false);
 		console.log("validate result:",validate); 
@@ -59,6 +58,38 @@ console.log("getcard service")
 		}
 		let returnObject = { ...card._doc, listTitle: list.title, listId: listId, boardId: boardId };
 		return callback(false, returnObject);
+	} catch (error) {
+		return callback({ errMessage: 'Something went wrong', details: error.message });
+	}
+};
+const getAllCards = async ( workspaceId, boardId,listId, userId, callback) => {
+	try {
+// Get  modals
+	  const workspace = await workspaceModel.findById(workspaceId);
+	   const board = await boardModel.findById(boardId);
+       const list = await listModel.findById(listId);
+	  const user = await userModel.findById(userId);
+ // Check if the user is the owner of the workspace
+	  console.log("workspace owner-> :",workspace.owner);
+	  console.log(" UserId-> :",userId);
+	  const isOwner = workspace.owner.equals(userId);
+ // Get cards's ids of list
+	  const cardIds = list.cards;
+	  // Define a filter to use in the query
+	  let filter = { _id: { $in: cardIds}};
+ // If the user is not the owner and is a member of the workspace,
+	  // add an additional filter to only show lists the user is a member of
+
+	  if (!isOwner) {
+		filter.members = { $elemMatch: { user: userId } };
+		console.log("userId->",userId)
+	  }
+	  console.log("filter Value:",filter);
+		 // Get cards of the list based on the filter
+	//   const cards = await cardModel.find(filter).populate({ path: 'cards' }).exec();
+	const cards = await cardModel.find(filter);
+	
+		return callback(false, cards);
 	} catch (error) {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
@@ -77,7 +108,6 @@ const deleteById = async ( cardId, listId, boardId, workspaceId, user, callback)
 		}
 		 // Find the workspace object based on the matching workspaceId
  const cardAvalaible= list.cards.find(card => card.toString() === cardId);
-
   if (!cardAvalaible) {
 	 const errorMessage = 'card information is not correct or card not found';
 	 return callback({ errMessage: errorMessage });
@@ -299,12 +329,15 @@ const addMember = async (cardId, listId, boardId, workspaceId, user, memberId, c
             color: user.color,
         });
         await board.save();
-
         return callback(false, { message: "success" });
     } catch (error) {
         return callback({ errMessage: "Something went wrong", details: error.message });
     }
 };
+
+
+
+
 const deleteMember = async (cardId, listId, boardId,  workspaceId,user, memberId, callback) => {
 	try {
 		// Get models
@@ -821,6 +854,7 @@ module.exports = {
 	create,
 	update,
 	getCard,
+	getAllCards,
 	addComment,
 	deleteById,
 	updateComment,

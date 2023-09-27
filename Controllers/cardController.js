@@ -25,6 +25,25 @@ const getCard = async (req, res) => {
 		return res.status(200).send(result);
 	});
 };
+
+const getAllCards = async (req, res) => {
+	// Assing parameter to constant
+	const { workspaceId,boardId,listId } = req.params;
+	const userId = req.user.id
+	console.log(listId," han yehi hai......................................................................");
+	const workspace = req.user.workspaces.find(workspace => workspace.toString() === workspaceId);
+    if (!workspace) {
+        return res 
+            .status(400)
+            .send({ errMessage: 'Workspace not found or you do not have access to it.' });
+    }
+	// Call the service to get all lists whose owner id matches the boardId
+	await cardService.getAllCards(workspaceId,boardId,listId, userId, (err, result) => {
+		if (err) return res.status(500).send(err);
+		return res.status(200).send(result);
+	});
+};
+
 const update = async (req, res) => {
 	// Get params
 	const user = req.user;
@@ -369,6 +388,7 @@ module.exports = {
 	create,
 	deleteById,
 	getCard,
+	getAllCards,
 	update,
 	addComment,
 	updateComment,

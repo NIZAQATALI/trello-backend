@@ -72,7 +72,7 @@ const getWorkspaces = async (userId, callback) => {
 	try {
 		// Get user
 		const user = await userModel.findById(userId);
-		// Get board's ids of user
+		// Get workspace's ids of user
 		const workspaceIds = user.workspaces;
 		// Get boards of user
 		const workspaces = await workspaceModel.find({ _id: { $in: workspaceIds } });
