@@ -23,7 +23,7 @@ const getAll = async (req, res) => {
 	// Assing parameter to constant
 	const { workspaceId,boardId } = req.params;
 	const userId = req.user.id
-	console.log(workspaceId," han yehi hai");
+
 	const workspace = req.user.workspaces.find(workspace => workspace.toString() === workspaceId);
     if (!workspace) {
         return res 
@@ -36,6 +36,27 @@ const getAll = async (req, res) => {
 		return res.status(200).send(result);
 	});
 };
+const getAllListofSelectedBoard = async (req, res) => {
+	// Assing parameter to constant
+	console.log("getAllListofSelectedBoard controller")
+	const { workspaceId } = req.body;
+	const { boardIds}  = req.body;
+	const userId = req.user.id
+	
+	const workspace = req.user.workspaces.find(workspace => workspace.toString() === workspaceId);
+    if (!workspace) {
+        return res 
+            .status(400)
+            .send({ errMessage: 'Workspace not found or you do not have access to it.' });
+    }
+	// Call the service to get all lists whose owner id matches the boardId
+	await listService.getAllListofSelectedBoard(workspaceId, boardIds, userId, (err, result) => {
+		if (err) return res.status(500).send(err);
+		return res.status(200).send(result);
+	});
+};
+
+
 const deleteById = async (req, res) => {
 	// deconstruct the params
 	const { workspaceId, listId, boardId } = req.params;
@@ -137,6 +158,7 @@ console.log("user:",user)
 module.exports = {
 	create,
 	getAll,
+	getAllListofSelectedBoard ,
 	deleteById,
 	updateCardOrder,
 	updateListOrder,

@@ -3,7 +3,6 @@ const create = async (req, res) => {
 	if (req.user.userType !== 'admin') {
 		return res.status(403).json({ errMessage: 'Access denied. Only admins can create workspaces.' });
 	  }
-	
 	const { name, type, description } = req.body;
 	if (!(name && type ))
 		return res.status(400).send({ errMessage: 'name and/or type cannot be null' });
@@ -79,6 +78,22 @@ const addMember = async (req, res) => {
 		return res.status(200).send(result);
 	});
 };
+const newAddMember = async (req, res) => {
+	// Validate whether params.id is in the user's workspaces or not
+	const validate = req.user.workspaces.filter((workspace) => workspace === req.body.workspaceId);
+	console.log(validate);
+	if (!validate)
+		return res
+			.status(400)
+			.send({ errMessage: 'You can not add member to this workspace, you are not a member or owner!' });
+	const { workspaceId, memberId, boardIds, listIds, cardIds } = req.body;
+	// Call the service
+	console.log("in the  controller")
+	await workspaceService.newAddMember(workspaceId, memberId, boardIds, listIds, cardIds , req.user, (err, result) => {
+		if (err) return res.status(400).send(err);
+		return res.status(200).send(result);
+	});
+};
 const deleteMember = async (req, res) => {
 	// Validate whether params.id is in the user's workspaces or not
 	const validate = req.user.workspaces.filter((workspace) => workspace === req.params.id);
@@ -101,6 +116,7 @@ module.exports = {
     getWorkspace,
 	updateWorkspaceDescription,
 	updateWorkspaceName,
+	newAddMember,
 	addMember,
 	deleteMember
 };

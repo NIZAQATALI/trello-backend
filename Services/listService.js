@@ -114,6 +114,61 @@ console.log("list resposnsss",lists);
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
+
+
+
+const getAllListofSelectedBoard = async (workspaceId, boardIds, userId, callback) => {
+	try {
+		console.log("getAllListofSelectedBoard  Services")
+
+		const workspace = await workspaceModel.findById(workspaceId);
+		const  isOwner =workspace.owner.equals(userId);
+	  // Create an array to store the lists from all boards
+	  const allLists = [];
+	  console.log(Array.isArray(boardIds)); // Check if boardIds is an array
+	  console.log(boardIds); // Check if boardIds is an array
+	  // Fetch lists from each board concurrently
+	  await Promise.all(boardIds.map(async (boardId) => {
+		// Get the board
+		console.log("boardId",boardId);
+		const board = await boardModel.findById(boardId);
+		// Check if the user is the owner of the workspace
+		const isOwner = board.owner.equals(userId);
+		// Get list's ids of board
+		const listIds = board.lists;
+		// Define a filter to use in the query
+		let filter = { _id: { $in: listIds } };
+		// If the user is not the owner and is a member of the workspace,
+		if (!isOwner) {
+		  filter.members = { $elemMatch: { user: userId } };
+		}
+  
+		// Get lists of the board based on the filter
+		const lists = await listModel.find(filter);
+  
+		// Combine the lists into the allLists array
+		allLists.push(...lists);
+	  }));
+  
+	  // Now, populate the cards field in each list
+	  for (let i = 0; i < allLists.length; i++) {
+		const list = allLists[i];
+		const cardIds = list.cards;
+		let Cardfilter = { _id: { $in: cardIds } };
+		if (!isOwner) {
+		  Cardfilter.members = { $elemMatch: { user: userId } };
+		}
+		const cards = await cardModel.find(Cardfilter);
+		list.cards = cards;
+	  }    
+  console.log(allLists.length);
+	  // Return the combined list array to the callback
+	  return callback(false, allLists);
+	} catch (error) {
+	  return callback({ errMessage: 'Something went wrong', details: error.message });
+	}
+  };
+  
 const deleteById = async (listId, boardId, user, callback) => {
 	try {
 		// Get board to check the parent of list is this board
@@ -400,6 +455,7 @@ console.log("memberToRemove",memberToRemove)
 module.exports = {
 	create,
 	getAll,
+	getAllListofSelectedBoard,
 	deleteById,
 	updateCardOrder,
 	updateListOrder,

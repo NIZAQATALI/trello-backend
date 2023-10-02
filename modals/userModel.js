@@ -33,7 +33,7 @@ const userSchema = mongoose.Schema({
 	userType: {
 		type: String,
 		default: "user",
-		enum: ["user", "hr", "admin"]
+		enum: ["user", "hr", "admin","Mananager","Quality Assurance"]
 	  },
 	otp:{
 		type:Number

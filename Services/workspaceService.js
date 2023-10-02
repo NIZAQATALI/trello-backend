@@ -67,20 +67,51 @@ const create = async (req, callback) => {
 		});
 	}
 };
+// const getWorkspaces = async (userId, callback) => {
+// 	console.log(userId)
+// 	try {
+// 		// Get user
+// 		const user = await userModel.findById(userId);
+// 		// Get workspace's ids of user
+// 		const workspaceIds = user.workspaces;
+// 		// Get boards of user
+// 		const workspaces = await workspaceModel.find({ _id: { $in: workspaceIds } });
+// 		return callback(false, workspaces);
+// 	} catch (error) {
+// 		return callback({ msg: 'Something went wrong', details: error.message });
+// 	}
+// };
+
+
+
 const getWorkspaces = async (userId, callback) => {
-	console.log(userId)
 	try {
-		// Get user
-		const user = await userModel.findById(userId);
-		// Get workspace's ids of user
-		const workspaceIds = user.workspaces;
-		// Get boards of user
-		const workspaces = await workspaceModel.find({ _id: { $in: workspaceIds } });
-		return callback(false, workspaces);
+	  // Get user
+	  const user = await userModel.findById(userId);
+  
+	  // Get workspace's ids of user
+	  const workspaceIds = user.workspaces;
+  
+	  // Define a filter to use in the query
+	  let filter = { _id: { $in: workspaceIds } };
+  
+	  // Check if the user is the owner of any of the workspaces
+	  const ownedWorkspaces = await workspaceModel.find({ _id: { $in: workspaceIds }, owner: userId });
+  
+	  if (ownedWorkspaces.length === 0) {
+		// If the user is not the owner of any workspaces, add an additional filter to only show workspaces where the user has a membership role
+		filter.members = { $elemMatch: { user: userId } };
+	  }
+  
+	  // Get workspaces based on the filter
+	  const workspaces = await workspaceModel.find(filter);
+  
+	  return callback(false, workspaces);
 	} catch (error) {
-		return callback({ msg: 'Something went wrong', details: error.message });
+	  return callback({ msg: 'Something went wrong', details: error.message });
 	}
-};
+  };
+  
 const getWorkspace = async (id, callback) => {
 	try {
 		console.log(" in the workspaceService  ");
@@ -107,13 +138,177 @@ const updateWorkspaceDescription = async (workspaceId, description, user, callba
 		// Get workspace by id
 		const workspace = await workspaceModel.findById(workspaceId);
 		workspace.description = description;
-		
 		await workspace.save();
-		return callback(false, { message: 'Success!' });
+		return callback(false, { message: 'Success!'});
 	} catch (error) {
 		return callback({ message: 'Something went wrong', details: error.message });
 	}
 };
+// api testing #1
+const newAddMember = async (workspaceId, memberId, boardIds, listIds, cardIds,user, callback) => {
+	try {
+		
+	  // Get the workspace by workspaceId
+	  const workspace = await workspaceModel.findById(workspaceId);
+	  const newMember = await userModel.findById(memberId);
+
+	  // Check if the member with memberId exists in the workspace's members
+	  console.log("new member name",newMember.name);
+	  const memberExists = workspace.members.some((member) => member.user.toString() === memberId.toString());
+	  if (memberExists) {
+		// If the member already exists in the workspace, return a custom error message
+		return callback({ message: `Member Already exists in '${workspace.name}'.`});
+	  }
+	  if (!memberExists) {
+		// If the member doesn't exist in the workspace, add them
+		workspace.members.push({ user: memberId,
+			name: newMember.name,
+			surname: newMember.surname,
+			email: newMember.email,
+		    color: newMember.color
+		 });
+		await workspace.save();
+		   // Add the workspace to the newMember's workspaces array
+		   newMember.workspaces.push(workspaceId);
+
+		   await newMember.save();
+	  }
+	  // Add the member to the selected boards
+	  for (const boardId of boardIds) {
+		const board = await boardModel.findById(boardId);
+		// Check if the member is already in the board's members
+		const boardMemberExists = board.members.some((boardMember) => boardMember.user.toString() === memberId.toString());
+       
+		if (!boardMemberExists) {
+		  board.members.push({ user: memberId,
+			name: newMember.name,
+			surname: newMember.surname,
+			email: newMember.email,
+		    color: newMember.color
+		 });
+		  await board.save();
+		}
+		// Add the member to the selected lists within the board
+		for (const listId of listIds) {
+		  const list = await listModel.findById(listId);
+		  // Check if the member is already in the list's members
+		  const listMemberExists = list.members.some((listMember) => listMember.user.toString() === memberId.toString());
+		
+		  if (!listMemberExists) {
+			list.members.push({ user: memberId,
+				name: newMember.name,
+				surname: newMember.surname,
+				email: newMember.email,
+				color: newMember.color
+			 });
+			await list.save();
+		  }
+		  // Add the member to the selected cards within the list
+		  for (const cardId of cardIds) {
+			const card = await cardModel.findById(cardId);
+			// Check if the member is already in the card's members
+			const cardMemberExists = card.members.some((cardMember) => cardMember.user.toString() === memberId.toString());
+			if (!cardMemberExists) {
+			  card.members.push({ user: memberId,
+				name: newMember.name,
+				surname: newMember.surname,
+				email: newMember.email,
+				color: newMember.color
+			 });
+			  await card.save();
+			}
+		  }
+		}
+	  }
+	  callback(null, { message: 'Member added successfully.' });
+	} catch (error) {
+	  callback(error, null);
+	}
+  };
+// #2
+// const newAddMember = async (workspaceId, memberId, boardIds, listIds, cardIds, user, callback) => {
+// 	try {
+// 	  let errorOccurred = false; // Flag to track if an error occurred
+// 	  // Get the workspace by workspaceId
+// 	  const workspace = await workspaceModel.findById(workspaceId);
+// 	  const newMember = await workspaceModel.findById(memberId);
+// 	  // Check if the member with memberId exists in the workspace's members
+// 	  const memberExistsInWorkspace = workspace.members.some((member) => member.user.toString() === memberId.toString());
+// 	  if (memberExistsInWorkspace) {
+// 		errorOccurred = true; // Set the flag to true if an error occurs
+// 		callback({ message: `Member already exists in '${workspace.name}'.` });
+// 	  }
+// 	  if (!memberExistsInWorkspace) {
+// 		// If the member doesn't exist in the workspace, add them
+// 		workspace.members.push({ user: memberId });
+// 		await workspace.save();
+// 	  }
+// 	  // Add the member to the selected boards
+// 	  for (const boardId of boardIds) {
+// 		const board = await boardModel.findById(boardId);
+  
+// 		// Check if the member is already in the board's members
+// 		const memberExistsInBoard = board.members.some((boardMember) => boardMember.user.toString() === memberId.toString());
+  
+// 		if (memberExistsInBoard) {
+// 		  errorOccurred = true; // Set the flag to true if an error occurs
+// 		  callback({ message: `Member already exists in '${board.title}'.` });
+// 		}
+// 		if (!memberExistsInBoard) {
+// 		  board.members.push({ user: memberId });
+// 		  await board.save();
+// 		}
+// 		}
+// 	// Add the member to the selected lists within the board
+// 	for (const listId of listIds) {
+// 		const list = await listModel.findById(listId);
+
+// 		// Check if the member is already in the list's members
+// 		const memberExistsInList = list.members.some((listMember) => listMember.user.toString() === memberId.toString());
+
+// 		if (memberExistsInList) {
+// 		  errorOccurred = true; // Set the flag to true if an error occurs
+// 		  callback({ message: `Member already exists in '${list.title}'.` });
+// 		}
+
+// 		if (!memberExistsInList) {
+// 		  list.members.push({ user: memberId });
+// 		  await list.save();
+// 		}
+
+
+
+
+// 	  }
+//       // Add the member to the selected cards within the list
+// 		  for (const cardId of cardIds) {
+// 			const card = await cardModel.findById(cardId);
+  
+// 			// Check if the member is already in the card's members
+// 			const memberExistsInCard = card.members.some((cardMember) => cardMember.user.toString() === memberId.toString());
+  
+// 			if (memberExistsInCard) {
+// 			  errorOccurred = true; // Set the flag to true if an error occurs
+// 			  callback({ message: `Member already exists in '${card.title}'.` });
+// 			}
+  
+// 			if (!memberExistsInCard) {
+// 			  card.members.push({ user: memberId });
+// 			  await card.save();
+// 			}
+// 		  }
+		
+// 	  // If no errors occurred, return the success message
+// 	  if (!errorOccurred) {
+// 		callback(null, { message: 'Member added successfully.' });
+// 	  }
+// 	} catch (error) {
+// 	  callback(error, null);
+// 	}
+//   };
+  
+
+
 const addMember = async (id, members, user, callback) => {
     let callbackCalled = false; // Flag to track if the callback has been called
     try {
@@ -238,6 +433,7 @@ getWorkspaces,
 getWorkspace,
 updateWorkspaceDescription,
 updateWorkspaceName,
+newAddMember,
 addMember,
 deleteMember
 }

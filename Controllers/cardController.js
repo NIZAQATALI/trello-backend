@@ -30,7 +30,6 @@ const getAllCards = async (req, res) => {
 	// Assing parameter to constant
 	const { workspaceId,boardId,listId } = req.params;
 	const userId = req.user.id
-	console.log(listId," han yehi hai......................................................................");
 	const workspace = req.user.workspaces.find(workspace => workspace.toString() === workspaceId);
     if (!workspace) {
         return res 
