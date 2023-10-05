@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const userSchema = mongoose.Schema({
 	name: {
 		type: String,
@@ -32,8 +31,8 @@ const userSchema = mongoose.Schema({
 	],
 	userType: {
 		type: String,
-		default: "user",
-		enum: ["user", "hr", "admin","Mananager","Quality Assurance"]
+		default: "Team member",
+		enum: ["Team member", "HR", "admin","manager","SQA","user"]
 	  },
 	otp:{
 		type:Number
@@ -42,5 +41,4 @@ const userSchema = mongoose.Schema({
 		type:Boolean,
 	}
 });
-
 module.exports = mongoose.model('user', userSchema);

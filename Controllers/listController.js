@@ -10,7 +10,6 @@ const create = async (req, res) => {
     }
 	// Deconstruct the body
 	const { title, boardId } = req.body;
-	console.log("in the list")
 	// Validate the title
 	if (!(title && boardId)) return res.status(400).send({ errMessage: 'Title cannot be empty' });
 	// Call the service to add new list
@@ -23,7 +22,6 @@ const getAll = async (req, res) => {
 	// Assing parameter to constant
 	const { workspaceId,boardId } = req.params;
 	const userId = req.user.id
-
 	const workspace = req.user.workspaces.find(workspace => workspace.toString() === workspaceId);
     if (!workspace) {
         return res 
@@ -42,7 +40,6 @@ const getAllListofSelectedBoard = async (req, res) => {
 	const { workspaceId } = req.body;
 	const { boardIds}  = req.body;
 	const userId = req.user.id
-	
 	const workspace = req.user.workspaces.find(workspace => workspace.toString() === workspaceId);
     if (!workspace) {
         return res 
@@ -55,8 +52,6 @@ const getAllListofSelectedBoard = async (req, res) => {
 		return res.status(200).send(result);
 	});
 };
-
-
 const deleteById = async (req, res) => {
 	// deconstruct the params
 	const { workspaceId, listId, boardId } = req.params;
@@ -83,7 +78,6 @@ const updateCardOrder = async (req, res) => {
 	if (!(boardId && sourceId && destinationId && cardId))
 		return res.status(400).send({ errMessage: 'All parameters not provided' });
 	// Validate the owner of board
-	
 	// Call the service
 	await listService.updateCardOrder(boardId, sourceId, destinationId, destinationIndex, cardId,  workspaceId,user, (err, result) => {
 		if (err) return res.status(500).send(err);

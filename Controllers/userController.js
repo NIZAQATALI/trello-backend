@@ -50,10 +50,8 @@ const getUser = async (req, res) => {
   });
 };
 const getAllUser = async (req, res) => {
-  
   await userService.getAllUser( (err, result) => {
     if (err) return res.status(404).send(err);
-   
     return res.status(200).send(result);
   });
 };
@@ -73,8 +71,9 @@ const getUserWithMail = async(req,res) => {
 }
 // Update User
 const updateUser = async (req, res) => {
-  const  id  = req.params.id
-  if (req.body.userId === id) {
+  const  id  = req.body.id;
+      console.log("user role",req.user.userType)
+  if (req.user.userType === "admin") {
     try {
       if (req.body.password) {
         const salt = await bcrypt.genSalt(10);
@@ -86,7 +85,7 @@ const updateUser = async (req, res) => {
       res.status(500).json(err);
     }
   } else {
-    res.status(401).json("You can update only your account!");
+    res.status(401).json("only  admin can  change  this!");
   }
 };
  const sendotp = async (req, res) => {

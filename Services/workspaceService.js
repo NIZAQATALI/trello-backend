@@ -155,10 +155,7 @@ const newAddMember = async (workspaceId, memberId, boardIds, listIds, cardIds,us
 	  // Check if the member with memberId exists in the workspace's members
 	  console.log("new member name",newMember.name);
 	  const memberExists = workspace.members.some((member) => member.user.toString() === memberId.toString());
-	  if (memberExists) {
-		// If the member already exists in the workspace, return a custom error message
-		return callback({ message: `Member Already exists in '${workspace.name}'.`});
-	  }
+	 
 	  if (!memberExists) {
 		// If the member doesn't exist in the workspace, add them
 		workspace.members.push({ user: memberId,
@@ -178,7 +175,6 @@ const newAddMember = async (workspaceId, memberId, boardIds, listIds, cardIds,us
 		const board = await boardModel.findById(boardId);
 		// Check if the member is already in the board's members
 		const boardMemberExists = board.members.some((boardMember) => boardMember.user.toString() === memberId.toString());
-       
 		if (!boardMemberExists) {
 		  board.members.push({ user: memberId,
 			name: newMember.name,
@@ -193,7 +189,6 @@ const newAddMember = async (workspaceId, memberId, boardIds, listIds, cardIds,us
 		  const list = await listModel.findById(listId);
 		  // Check if the member is already in the list's members
 		  const listMemberExists = list.members.some((listMember) => listMember.user.toString() === memberId.toString());
-		
 		  if (!listMemberExists) {
 			list.members.push({ user: memberId,
 				name: newMember.name,

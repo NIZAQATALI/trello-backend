@@ -22,7 +22,6 @@ mongoose.connect(process.env.MONGO_URL, {
  app.use(cors());
 // AUTH VERIFICATION AND UNLESS
 auth.verifyToken.unless = unless;
-
 app.use(
 	auth.verifyToken.unless({
 		path: [
@@ -33,6 +32,33 @@ app.use(
 		],
 	})
 );
+const protectedRoutes = [
+ // '/user/get-all-users',
+  // workspace protected routes here
+  '/workspace/create',
+  '/workspace/update-workspaceDescription/:workspaceId',
+  '/workspace/update-workspaceName/:workspaceId',
+  '/workspace/new-addmember',
+  '/workspace/workspaceId/delete-member',
+  // board protected routes here
+  '/board/:workspaceId/:boardId/add-member',
+  '/board/:workspaceId/:boardId/delete-member-from-Board',
+  '/board/:workspaceId/:boardId/update-background',
+  '/board/:workspaceId/:boardId/update-board-description',
+  '/board/:workspaceId/:boardId/update-board-title',
+  '/board/create',
+  '/board/:workspaceId/:boardId',
+  // list protected routes here
+  '/list/:workspaceId/:boardId/:listId/update-title',
+  '/list/:workspaceId/create',
+   '/list/:workspaceId/:boardId/:listId',
+  '/list/change-card-order',
+  '/list/change-list-order',
+  '/list/:workspaceId/:boardId/:listId/add-member',
+  '/list/:workspaceId/:boardId/:listId/delete-member-from-list',
+  // card protected routes here 
+];
+app.use(protectedRoutes,auth.adminAccessMiddleware);
 // AUTH ADMIN VERIFICATION AND UNLESS
 // auth.adminAccessMiddleware.unless = unless;
 
@@ -54,7 +80,7 @@ app.use(
 //   { url: /^\/board\/\w+$/, method: ['GET'] },
 //   { url: /^\/board\/\w+\/\w+$/, method: ['GET'] },
 //   //list unless routes
-  
+
 // 		],
 // 	})
 // );
@@ -65,7 +91,7 @@ app.use('/board', boardRoute);
 app.use('/list', listRoute);
 app.use('/card', cardRoute);
 app.use('/workspace', workspaceRoute);
-    app.get('/about', function (req, res) {
+ app.get('/about', function (req, res) {
        res.send('Hello World  of About')
         })
   app.listen(5000,()=>{

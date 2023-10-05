@@ -5,6 +5,7 @@ const router = express.Router();
 router.post("/register",  userController.register);
 router.post("/login", userController.login);
 router.get("/get-user", userController.getUser);
+router.put("/update-user", userController.updateUser);
 router.get("/get-all-users", userController.getAllUser);
 router.get("/get-user-with-email", userController.getUserWithMail);
 router.post('/submit-otp', userController.submitotp)

@@ -168,7 +168,6 @@ const getAllListofSelectedBoard = async (workspaceId, boardIds, userId, callback
 	  return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
   };
-  
 const deleteById = async (listId, boardId, user, callback) => {
 	try {
 		// Get board to check the parent of list is this board
