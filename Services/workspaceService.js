@@ -81,37 +81,27 @@ const create = async (req, callback) => {
 // 		return callback({ msg: 'Something went wrong', details: error.message });
 // 	}
 // };
-
-
-
 const getWorkspaces = async (userId, callback) => {
 	try {
 	  // Get user
 	  const user = await userModel.findById(userId);
-  
 	  // Get workspace's ids of user
 	  const workspaceIds = user.workspaces;
-  
 	  // Define a filter to use in the query
 	  let filter = { _id: { $in: workspaceIds } };
-  
 	  // Check if the user is the owner of any of the workspaces
 	  const ownedWorkspaces = await workspaceModel.find({ _id: { $in: workspaceIds }, owner: userId });
-  
 	  if (ownedWorkspaces.length === 0) {
 		// If the user is not the owner of any workspaces, add an additional filter to only show workspaces where the user has a membership role
 		filter.members = { $elemMatch: { user: userId } };
 	  }
-  
 	  // Get workspaces based on the filter
 	  const workspaces = await workspaceModel.find(filter);
-  
 	  return callback(false, workspaces);
 	} catch (error) {
 	  return callback({ msg: 'Something went wrong', details: error.message });
 	}
   };
-  
 const getWorkspace = async (id, callback) => {
 	try {
 		console.log(" in the workspaceService  ");
@@ -147,15 +137,12 @@ const updateWorkspaceDescription = async (workspaceId, description, user, callba
 // api testing #1
 const newAddMember = async (workspaceId, memberId, boardIds, listIds, cardIds,user, callback) => {
 	try {
-		
 	  // Get the workspace by workspaceId
 	  const workspace = await workspaceModel.findById(workspaceId);
 	  const newMember = await userModel.findById(memberId);
-
 	  // Check if the member with memberId exists in the workspace's members
 	  console.log("new member name",newMember.name);
 	  const memberExists = workspace.members.some((member) => member.user.toString() === memberId.toString());
-	 
 	  if (!memberExists) {
 		// If the member doesn't exist in the workspace, add them
 		workspace.members.push({ user: memberId,

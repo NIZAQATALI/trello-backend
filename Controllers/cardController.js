@@ -25,7 +25,6 @@ const getCard = async (req, res) => {
 		return res.status(200).send(result);
 	});
 };
-
 const getAllCards = async (req, res) => {
 	// Assing parameter to constant
 	const { workspaceId,boardId,listId } = req.params;
@@ -42,7 +41,6 @@ const getAllCards = async (req, res) => {
 		return res.status(200).send(result);
 	});
 };
-
 const update = async (req, res) => {
 	// Get params
 	const user = req.user;
@@ -59,7 +57,6 @@ const update = async (req, res) => {
 };
 const deleteById = async (req, res) => {
 	// deconstruct the params
-	
 	const user = req.user;
 	const{ workspaceId, boardId, listId, cardId } = req.params;
 	// Call the card service

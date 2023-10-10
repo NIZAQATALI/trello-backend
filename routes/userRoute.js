@@ -9,6 +9,7 @@ router.put("/update-user", userController.updateUser);
 router.get("/get-all-users", userController.getAllUser);
 router.get("/get-user-with-email", userController.getUserWithMail);
 router.post('/submit-otp', userController.submitotp)
-router.post('/send-otp', userController.sendotp)
+router.post('/send-otp', userController.sendotp)  
+router.post('/send-invitation', userController.sendInvitation)
 router.put("/update-user/:id", userController.updateUser);
 module.exports = router;

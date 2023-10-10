@@ -4,7 +4,6 @@ const nodemailer = require('nodemailer');
 const userModel = require("../modals/userModel");
 const auth = require("../Middlewares/auth");
 const register = async  (req, res) => {
-  console.log(req.body);
   const { name, surname, email, password } = req.body;
   if (!(name && surname && email && password))
     return res
@@ -103,8 +102,8 @@ const updateUser = async (req, res) => {
       port: 587,
       secure: false,
       auth: {
-        user: 'hafiznizaqatali@gmail.com',
-        pass: 'apzctdaptqzwpmmu' 
+        user: process.env.OUR_EMAIL,
+        pass: process.env.EMAIL_PASSWORD 
       }
   })
   let info = await transporter.sendMail({
@@ -112,7 +111,6 @@ const updateUser = async (req, res) => {
       to: req.body.email, // list of receivers
       subject: "OTP", // Subject line
       text: String(_otp),
-   
   })
   if (info.messageId) {
 
@@ -123,7 +121,6 @@ const updateUser = async (req, res) => {
           })
           .catch(err => {
               res.send({ code: 500, message: 'Server err' })
-
           })
 
   } else {
@@ -149,13 +146,53 @@ console.log(result);
       { email: result.email, otpUsed: false }, // Only update if otpUsed is false
       { otpUsed: true, password: req.body.password }
     );
-
       return res.status(200).json({ code: 200, message: 'Password updated' });
-    
   } catch (err) {
     return res.status(500).json({ code: 500, message: 'Server error' });
   }
 };
+const sendInvitation = async (req, res) => {
+  console.log(req.body);
+const{ email} = req.body
+  // Generate a unique invitation token or link for registration.
+  // You can use a library like `uuid` or generate a token with some data.
+  const invitationToken = auth.generateToken(email); // Implement this function
+  console.log(invitationToken);
+  // Create a link for registration. This link should contain the invitation token.
+  const registrationLink = `http://localhost:3000/register`;
+
+  let transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.OUR_EMAIL,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+
+  let info = await transporter.sendMail({
+    from: 'hafiznizaqatali@gmail.com',
+    to: req.body.email, // List of receivers
+    subject: 'Invitation to Register', // Subject line
+    text: `Click on the following link to register: ${registrationLink}  `,
+    html: `Click on the following link to register: <a href="${registrationLink}">${registrationLink}</a>`,
+  });
+
+  if (info.messageId) {
+    userModel
+      .updateOne({ email: req.body.email }, { invitationToken })
+      .then(result => {
+        res.send({ code: 200, message: 'Invitation sent' });
+      })
+      .catch(err => {
+        res.send({ code: 500, message: 'Server error' });
+      });
+  } else {
+    res.send({ code: 500, message: 'Server error' });
+  }
+};
+
 //  const submitotp = (req, res) => {
 //   console.log(req.body)
 
@@ -189,5 +226,6 @@ module.exports = {
   getUserWithMail,
   updateUser,
   sendotp,
-  submitotp
+  submitotp,
+  sendInvitation
 };

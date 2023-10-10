@@ -6,6 +6,16 @@ const generateToken = (id, email) => {
   });
   return token.toString();
 };
+const generateInvitationToken = (email) => {
+  const token = jwt.sign({email}, process.env.JWT_SECRET, {
+    expiresIn: process.env.TOKEN_EXPIRE_TIME,
+  });
+  return token.toString();
+};
+
+
+
+
 const verifyToken = async(req, res, next) => {
   try {
     if (!req.headers["authorization"])
@@ -41,6 +51,7 @@ const adminAccessMiddleware = (req, res, next) => {
 };
 module.exports = {
   generateToken,
+  generateInvitationToken,
   verifyToken,
   adminAccessMiddleware
 };

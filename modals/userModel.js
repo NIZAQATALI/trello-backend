@@ -37,6 +37,10 @@ const userSchema = mongoose.Schema({
 	otp:{
 		type:Number
 	},
+	invitationToken:{
+		type:String
+	},
+
 	otpUsed:{
 		type:Boolean,
 	}

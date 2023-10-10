@@ -52,7 +52,7 @@ const getCard = async ( workspaceId,cardId, listId, boardId, user, callback) => 
 		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
 		const validate = await helperMethods.validateCardOwners( card, list,  board,workspace , user, false);
-		console.log("validate result:",validate); 
+		
 		if (!validate) {
 			return callback({  errMessage: 'You dont have permission to access this card' });
 		}
