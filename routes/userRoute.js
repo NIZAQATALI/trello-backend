@@ -11,5 +11,6 @@ router.get("/get-user-with-email", userController.getUserWithMail);
 router.post('/submit-otp', userController.submitotp)
 router.post('/send-otp', userController.sendotp)  
 router.post('/send-invitation', userController.sendInvitation)
+router.post('/registerViaInvite', userController.registerViaInvite)
 router.put("/update-user/:id", userController.updateUser);
 module.exports = router;

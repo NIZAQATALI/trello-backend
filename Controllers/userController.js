@@ -3,6 +3,7 @@ const userService = require("../Services/userServices");
 const nodemailer = require('nodemailer');
 const userModel = require("../modals/userModel");
 const auth = require("../Middlewares/auth");
+const jwt = require("jsonwebtoken");
 const register = async  (req, res) => {
   const { name, surname, email, password } = req.body;
   if (!(name && surname && email && password))
@@ -16,6 +17,41 @@ const register = async  (req, res) => {
     if (err) return res.status(400).send(err);
     return res.status(201).send(result);
   });
+};
+const registerViaInvite = async  (req, res) => {
+  const token = req.query.token;
+  console.log(".........>token:",token)
+  const invitationToken = jwt.decode(token);
+  const {  email, name ,surname,  password } = req.body;
+ const Invited_Email = invitationToken.id
+  if (Invited_Email== email) {
+ if (!(name && surname && email && password))
+    return res
+      .status("400")
+      .send({ errMessage: "Please fill all required areas!" });
+  const salt = bcrypt.genSaltSync(10);
+  const hashedPassword = bcrypt.hashSync(password, salt);
+  req.body.password = hashedPassword;
+  await userService.register(req.body, (err, result) => {
+    if (err) return res.status(400).send(err);
+    return res.status(201).send(result);
+  });
+  } else {
+    return res
+      .status("400")
+      .send({ errMessage: `Please Enter Same  Email :${Invited_Email} on which  your   Invited!` });
+  }
+  // if (!(name && surname && email && password))
+  //   return res
+  //     .status("400")
+  //     .send({ errMessage: "Please fill all required areas!" });
+  // const salt = bcrypt.genSaltSync(10);
+  // const hashedPassword = bcrypt.hashSync(password, salt);
+  // req.body.password = hashedPassword;
+  // await userService.register(req.body, (err, result) => {
+  //   if (err) return res.status(400).send(err);
+  //   return res.status(201).send(result);
+  // });
 };
 const login = async (req, res) => {
   const { email, password } = req.body;
@@ -96,7 +132,6 @@ const updateUser = async (req, res) => {
   if (!user) {
       res.send({ code: 500, message: 'user not found' })
   }
-
   let transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
       port: 587,
@@ -158,8 +193,11 @@ const{ email} = req.body
   // You can use a library like `uuid` or generate a token with some data.
   const invitationToken = auth.generateToken(email); // Implement this function
   console.log(invitationToken);
+  const decodedToken = jwt.decode(invitationToken);
+  console.log(decodedToken)
   // Create a link for registration. This link should contain the invitation token.
-  const registrationLink = `http://localhost:3000/register`;
+  const registrationLink = ` http://localhost:3000/registerWithInvite?token=${invitationToken}`;
+  
 
   let transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -170,7 +208,6 @@ const{ email} = req.body
       pass: process.env.EMAIL_PASSWORD,
     },
   });
-
   let info = await transporter.sendMail({
     from: 'hafiznizaqatali@gmail.com',
     to: req.body.email, // List of receivers
@@ -219,6 +256,7 @@ const{ email} = req.body
 
 // }
 module.exports = {
+  registerViaInvite,
   register,
   login,
   getUser,
