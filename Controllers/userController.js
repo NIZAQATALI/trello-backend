@@ -20,10 +20,12 @@ const register = async  (req, res) => {
 };
 const registerViaInvite = async  (req, res) => {
   const token = req.query.token;
-  console.log(".........>token:",token)
+
   const invitationToken = jwt.decode(token);
   const {  email, name ,surname,  password } = req.body;
  const Invited_Email = invitationToken.id
+ console.log("entered Email",email);
+  console.log("Invited Email",Invited_Email);
   if (Invited_Email== email) {
  if (!(name && surname && email && password))
     return res

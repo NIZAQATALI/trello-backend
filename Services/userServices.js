@@ -11,15 +11,16 @@ const { createRandomHexColor } = require("./helperMethods");
 //       return callback({ errMessage: "Email already in use!", details: err });
 //     });
 // };
-const register = async (user, callback) => {
+const register = async (user,callback) => {
   try {
     const adminEmail = process.env.ADMIN_EMAIL; // Get the admin email from the environment variable
     console.log(process.env.ADMIN_EMAIL)
     const newUser = userModel({ ...user, color: createRandomHexColor()});
     if (user.email === adminEmail) {
       newUser.userType = 'admin'; // Set userType to 'admin' for the admin email
-    } else {
-      newUser.userType = 'user'; // Set userType to 'default' for other emails
+    } 
+    else {
+      newUser.userType = 'Team Member'; // Set userType to 'default' for other emails
     }
     const result = await newUser.save();
     callback(null, { message: "User created successfully!" });

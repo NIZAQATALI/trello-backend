@@ -135,6 +135,10 @@ const cardSchema = mongoose.Schema({
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'list',
 	},
+	isDeleted: {
+		type: Boolean,
+		default: false,
+	  },
 	cover: {
 		color: {
 			type: String,

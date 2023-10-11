@@ -29,6 +29,7 @@ app.use(
 			{ url: '/user/register', method: ['POST'] },
       { url: '/user/submit-otp', method: ['POST'] },
 			{ url: '/user/send-otp', method: ['POST'] },
+      { url: '/user/registerViaInvite', method: ['POST'] },
 		],
 	})
 );
@@ -57,6 +58,22 @@ const protectedRoutes = [
   '/list/:workspaceId/:boardId/:listId/add-member',
   '/list/:workspaceId/:boardId/:listId/delete-member-from-list',
   // card protected routes here 
+  '/card/workspaceId/:boardId/:listId/:cardId/delete-card',
+  '/card/:workspaceId/:boardId/:listId/:cardId/update-dates',
+  '/card/:workspaceId/:boardId/:listId/:cardId/update-cover',
+  '/card/:workspaceId/:boardId/:listId/:cardId/:checklistId/:checklistItemId/delete-checklist-item',
+  '/card/:workspaceId/:boardId/:listId/:cardId/:checklistId/:checklistItemId/set-checklist-item-text',
+  '/card/:workspaceId/:boardId/:listId/:cardId/:checklistId/add-checklist-item',
+  '/card/:workspaceId/:boardId/:listId/:cardId/:checklistId/delete-checklist',
+  '/card/:workspaceId/:boardId/:listId/:cardId/create-checklist',
+  '/card/:workspaceId/:boardId/:listId/:cardId/:labelId/update-label-selection',
+  '/card/:workspaceId/:boardId/:listId/:cardId/:labelId/delete-label',
+  '/card/:workspaceId/:boardId/:listId/:cardId/:labelId/update-label',
+  '/card/:workspaceId/:boardId/:listId/:cardId/create-label',
+  '/card/:workspaceId/:boardId/:listId/:cardId/add-member',
+  '/card/:workspaceId/:boardId/:listId/:cardId/:memberId/delete-member',
+  '/card/create',
+  '/card/:workspaceId/:boardId/:listId/:cardId',
 ];
 app.use(protectedRoutes,auth.adminAccessMiddleware);
 // AUTH ADMIN VERIFICATION AND UNLESS
