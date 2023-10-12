@@ -33,49 +33,49 @@ app.use(
 		],
 	})
 );
-// const protectedRoutes = [
-//  // '/user/get-all-users',
-//   // workspace protected routes here
-//   '/workspace/create',
-//   '/workspace/update-workspaceDescription/:workspaceId',
-//   '/workspace/update-workspaceName/:workspaceId',
-//   '/workspace/new-addmember',
-//   '/workspace/workspaceId/delete-member',
-//   // board protected routes here
-//   '/board/:workspaceId/:boardId/add-member',
-//   '/board/:workspaceId/:boardId/delete-member-from-Board',
-//   '/board/:workspaceId/:boardId/update-background',
-//   '/board/:workspaceId/:boardId/update-board-description',
-//   '/board/:workspaceId/:boardId/update-board-title',
-//   '/board/create',
+const protectedRoutes = [
+ // '/user/get-all-users',
+  // workspace protected routes here
+  '/workspace/create',
+  '/workspace/update-workspaceDescription/:workspaceId',
+  '/workspace/update-workspaceName/:workspaceId',
+  '/workspace/new-addmember',
+  '/workspace/workspaceId/delete-member',
+  // board protected routes here
+  '/board/:workspaceId/:boardId/add-member',
+  '/board/:workspaceId/:boardId/delete-member-from-Board',
+  '/board/:workspaceId/:boardId/update-background',
+  '/board/:workspaceId/:boardId/update-board-description',
+  '/board/:workspaceId/:boardId/update-board-title',
+  '/board/create',
   
-//   // list protected routes here
-//   '/list/:workspaceId/:boardId/:listId/update-title',
-//   '/list/:workspaceId/create',
-//    '/list/:workspaceId/:boardId/:listId',
-//   '/list/change-card-order',
-//   '/list/change-list-order',
-//   '/list/:workspaceId/:boardId/:listId/add-member',
-//   '/list/:workspaceId/:boardId/:listId/delete-member-from-list',
-//   // card protected routes here 
-//   '/card/workspaceId/:boardId/:listId/:cardId/delete-card',
-//   '/card/:workspaceId/:boardId/:listId/:cardId/update-dates',
-//   '/card/:workspaceId/:boardId/:listId/:cardId/update-cover',
-//   '/card/:workspaceId/:boardId/:listId/:cardId/:checklistId/:checklistItemId/delete-checklist-item',
-//   '/card/:workspaceId/:boardId/:listId/:cardId/:checklistId/:checklistItemId/set-checklist-item-text',
-//   '/card/:workspaceId/:boardId/:listId/:cardId/:checklistId/add-checklist-item',
-//   '/card/:workspaceId/:boardId/:listId/:cardId/:checklistId/delete-checklist',
-//   '/card/:workspaceId/:boardId/:listId/:cardId/create-checklist',
-//   '/card/:workspaceId/:boardId/:listId/:cardId/:labelId/update-label-selection',
-//   '/card/:workspaceId/:boardId/:listId/:cardId/:labelId/delete-label',
-//   '/card/:workspaceId/:boardId/:listId/:cardId/:labelId/update-label',
-//   '/card/:workspaceId/:boardId/:listId/:cardId/create-label',
-//   '/card/:workspaceId/:boardId/:listId/:cardId/add-member',
-//   '/card/:workspaceId/:boardId/:listId/:cardId/:memberId/delete-member',
-//   '/card/create',
-//   '/card/:workspaceId/:boardId/:listId/:cardId',
-// ];
-//app.use(protectedRoutes,auth.adminAccessMiddleware);
+  // list protected routes here
+  '/list/:workspaceId/:boardId/:listId/update-title',
+  '/list/:workspaceId/create',
+   '/list/:workspaceId/:boardId/:listId',
+  '/list/change-card-order',
+  '/list/change-list-order',
+  '/list/:workspaceId/:boardId/:listId/add-member',
+  '/list/:workspaceId/:boardId/:listId/delete-member-from-list',
+  // card protected routes here 
+  '/card/workspaceId/:boardId/:listId/:cardId/delete-card',
+  '/card/:workspaceId/:boardId/:listId/:cardId/update-dates',
+  '/card/:workspaceId/:boardId/:listId/:cardId/update-cover',
+  '/card/:workspaceId/:boardId/:listId/:cardId/:checklistId/:checklistItemId/delete-checklist-item',
+  '/card/:workspaceId/:boardId/:listId/:cardId/:checklistId/:checklistItemId/set-checklist-item-text',
+  '/card/:workspaceId/:boardId/:listId/:cardId/:checklistId/add-checklist-item',
+  '/card/:workspaceId/:boardId/:listId/:cardId/:checklistId/delete-checklist',
+  '/card/:workspaceId/:boardId/:listId/:cardId/create-checklist',
+  '/card/:workspaceId/:boardId/:listId/:cardId/:labelId/update-label-selection',
+  '/card/:workspaceId/:boardId/:listId/:cardId/:labelId/delete-label',
+  '/card/:workspaceId/:boardId/:listId/:cardId/:labelId/update-label',
+  '/card/:workspaceId/:boardId/:listId/:cardId/create-label',
+  '/card/:workspaceId/:boardId/:listId/:cardId/add-member',
+  '/card/:workspaceId/:boardId/:listId/:cardId/:memberId/delete-member',
+  '/card/create',
+  '/card/:workspaceId/:boardId/:listId/:cardId',
+];
+app.use(protectedRoutes,auth.adminAccessMiddleware);
 // AUTH ADMIN VERIFICATION AND UNLESS
 // auth.adminAccessMiddleware.unless = unless;
 

@@ -20,7 +20,7 @@ const register = async (user,callback) => {
       newUser.userType = 'admin'; // Set userType to 'admin' for the admin email
     } 
     else {
-      newUser.userType = 'Team Member'; // Set userType to 'default' for other emails
+      newUser.userType = 'Team member'; // Set userType to 'default' for other emails
     }
     const result = await newUser.save();
     callback(null, { message: "User created successfully!" });
