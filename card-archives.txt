@@ -6,7 +6,6 @@ const deleteById = async (cardId, listId, boardId, workspaceId, user, callback) 
     const list = await listModel.findById(listId);
     const board = await boardModel.findById(boardId);
     const workspace = await workspaceModel.findById(workspaceId);
-
     // Validate owner
     const validate = await helperMethods.validateCardOwners(card, list, board, workspace, user, false);
     if (!validate) {
@@ -18,16 +17,13 @@ const deleteById = async (cardId, listId, boardId, workspaceId, user, callback) 
       const errorMessage = 'card information is not correct or card not found';
       return callback({ errMessage: errorMessage });
     }
-
     // Check if the card is already marked as deleted
     if (card.isDeleted) {
       // If isDeleted is true, delete the card from the database
       await cardModel.findByIdAndDelete(cardId);
-
       // Remove the card from the list
       list.cards = list.cards.filter((tempCard) => tempCard.toString() !== cardId);
       await list.save();
-
       // Add activity log to the board
       board.activity.unshift({
         user: user._id,
@@ -41,7 +37,6 @@ const deleteById = async (cardId, listId, boardId, workspaceId, user, callback) 
       card.isDeleted = true;
       await card.save();
     }
-
     return callback(false, { message: 'Success' });
   } catch (error) {
     return callback({ errMessage: 'Something went wrong', details: error.message });
