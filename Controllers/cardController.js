@@ -25,6 +25,23 @@ const getCard = async (req, res) => {
 		return res.status(200).send(result);
 	});
 };
+//getAllArchivesCards
+const getAllArchivesCards = async (req, res) => {
+	// Assing parameter to constant
+
+	const { workspaceId,boardId,listId } = req.params;
+	const userId = req.user.id
+	const workspace = req.user.workspaces.find(workspace => workspace.toString() === workspaceId);
+    if (!workspace) {
+        return res 
+            .status(400)
+            .send({ errMessage: 'Workspace not found or you do not have access to it.' });
+    }
+	// Call the service to get all lists whose owner id matches the boardId
+	await cardService.getAllArchivesCards(workspaceId,boardId,listId, userId, (err, result) => {
+		if (err) return res.status(500).send(err);
+		return res.status(200).send(result);
+	});};
 const getAllCards = async (req, res) => {
 	// Assing parameter to constant
 	const { workspaceId,boardId,listId } = req.params;
@@ -35,11 +52,29 @@ const getAllCards = async (req, res) => {
             .status(400)
             .send({ errMessage: 'Workspace not found or you do not have access to it.' });
     }
+	
 	// Call the service to get all lists whose owner id matches the boardId
 	await cardService.getAllCards(workspaceId,boardId,listId, userId, (err, result) => {
 		if (err) return res.status(500).send(err);
 		return res.status(200).send(result);
 	});
+};
+const getDeletedActivities = async (req, res) => {
+	// Assing parameter to constant
+	console.log("getDeletedActivities")
+	const { workspaceId,boardId,listId } = req.params;
+	const userId = req.user.id
+	const workspace = req.user.workspaces.find(workspace => workspace.toString() === workspaceId);
+	if (!workspace) {
+		return res 
+			.status(400)
+			.send({ errMessage: 'Workspace not found or you do not have access to it.' });
+	}
+// Call the service to get all lists whose owner id matches the boardId
+await cardService.getDeletedActivities(workspaceId,boardId,listId, userId, (err, result) => {
+	if (err) return res.status(500).send(err);
+	return res.status(200).send(result);
+});
 };
 const update = async (req, res) => {
 	// Get params
@@ -385,6 +420,7 @@ module.exports = {
 	deleteById,
 	getCard,
 	getAllCards,
+	getAllArchivesCards,
 	update,
 	addComment,
 	updateComment,
@@ -407,4 +443,5 @@ module.exports = {
 	deleteAttachment,
 	updateAttachment,
 	updateCover,
+	getDeletedActivities
 };

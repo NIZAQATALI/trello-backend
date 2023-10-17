@@ -62,74 +62,272 @@ const getCard = async ( workspaceId,cardId, listId, boardId, user, callback) => 
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-const getAllCards = async ( workspaceId, boardId,listId, userId, callback) => {
-	try {
-// Get  modals
-	  const workspace = await workspaceModel.findById(workspaceId);
-	   const board = await boardModel.findById(boardId);
-       const list = await listModel.findById(listId);
-	  const user = await userModel.findById(userId);
- // Check if the user is the owner of the workspace
-	  console.log("workspace owner-> :",workspace.owner);
-	  console.log(" UserId-> :",userId);
-	  const isOwner = workspace.owner.equals(userId);
- // Get cards's ids of list
-	  const cardIds = list.cards;
-	  // Define a filter to use in the query
-	  let filter = { _id: { $in: cardIds}};
- // If the user is not the owner and is a member of the workspace,
-	  // add an additional filter to only show lists the user is a member of
+// const getAllCards = async (workspaceId, boardId, listId, userId, callback) => {
+// 	try {
+// 	  // Get modals
+// 	  const workspace = await workspaceModel.findById(workspaceId);
+// 	  const board = await boardModel.findById(boardId);
+// 	  const list = await listModel.findById(listId);
+// 	  const user = await userModel.findById(userId);
+  
+// 	  // Check if the user is the owner of the workspace
+// 	  const isOwner = workspace.owner.equals(userId);
+  
+// 	  // Get cards' ids of the list
+// 	  const cardIds = list.cards;
+  
+// 	  // Define a filter to use in the query
+// 	  let filter = {
+// 		_id: { $in: cardIds },
+// 		isDeleted: false, // Add this filter for isDeleted status
+// 	  };
+  
+// 	  // If the user is not the owner and is a member of the workspace,
+// 	  // add an additional filter to only show lists the user is a member of
+// 	  if (!isOwner) {
+// 		filter.members = { $elemMatch: { user: userId } };
+// 	  }
+  
+// 	  // Get cards of the list based on the filter
+// 	  const cards = await cardModel.find(filter);
+  
+// 	  return callback(false, cards);
+// 	} catch (error) {
+// 	  return callback({ errMessage: 'Something went wrong', details: error.message });
+// 	}
+//   };
 
+const getAllCards = async (workspaceId, boardId, listId, userId, callback) => {
+	try {
+	  // Get models
+	  const workspace = await workspaceModel.findById(workspaceId);
+	  const board = await boardModel.findById(boardId);
+	  const list = await listModel.findById(listId);
+	  const user = await userModel.findById(userId);
+  
+	  // Check if the user is the owner of the workspace
+	  const isOwner = workspace.owner.equals(userId);
+  
+	  // Get cards' ids of the list
+	  const cardIds = list.cards;
+  
+	  // Define a filter to use in the query
+	  let filter = {
+		_id: { $in: cardIds },
+		isDeleted: false, // Add this filter for the card's isDeleted status
+	  };
+  
+	  // If the user is not the owner and is a member of the workspace,
+	  // add an additional filter to only show lists the user is a member of
 	  if (!isOwner) {
 		filter.members = { $elemMatch: { user: userId } };
-		console.log("userId->",userId)
 	  }
-	  console.log("filter Value:",filter);
-		 // Get cards of the list based on the filter
-	//   const cards = await cardModel.find(filter).populate({ path: 'cards' }).exec();
-	const cards = await cardModel.find(filter);
-	
-		return callback(false, cards);
+  
+	  // Get cards of the list based on the filter
+	  const cards = await cardModel.find(filter);
+  
+	  // Filter the activities of each card based on the 'isDeleted' status
+	  const filteredCards = cards.map((card) => {
+		const filteredActivities = card.activities.filter((activity) => !activity.isDeleted);
+		return { ...card.toObject(), activities: filteredActivities };
+	  });
+	  return callback(false, filteredCards);
 	} catch (error) {
-		return callback({ errMessage: 'Something went wrong', details: error.message });
+	  return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
-};
-const deleteById = async ( cardId, listId, boardId, workspaceId, user, callback) => {
+  };
+
+  const getDeletedActivities = async (workspaceId, boardId, listId, userId, callback) => {
 	try {
-		// Get models
-		const card = await cardModel.findById(cardId);
-		const list = await listModel.findById(listId);
-		const board = await boardModel.findById(boardId);
-		const workspace = await workspaceModel.findById(workspaceId);
-		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board,workspace, user, false);
-		if (!validate) {
-			return callback({  errMessage: 'You dont have permission to access this card' });
-		}
-		 // Find the workspace object based on the matching workspaceId
- const cardAvalaible= list.cards.find(card => card.toString() === cardId);
-  if (!cardAvalaible) {
-	 const errorMessage = 'card information is not correct or card not found';
-	 return callback({ errMessage: errorMessage });
- }
-		// Delete the card
-		const result = await cardModel.findByIdAndDelete(cardId);
-		// Delete the card from cards of list
-		list.cards = list.cards.filter((tempCard) => tempCard.toString() !== cardId);
-		await list.save();
-		// Add activity log to board
-		board.activity.unshift({
-			user: user._id,
-			name: user.name,
-			action: `deleted ${result.title} from ${list.title}`,
-			color: user.color,
-		});
-		await board.save();
-		return callback(false, { message: 'Success' });
+	  // Get models
+	  const workspace = await workspaceModel.findById(workspaceId);
+	  const board = await boardModel.findById(boardId);
+	  const list = await listModel.findById(listId);
+	  const user = await userModel.findById(userId);
+  
+	  // Check if the user is the owner of the workspace
+	  const isOwner = workspace.owner.equals(userId);
+  
+	  // Get cards' ids of the list
+	  const cardIds = list.cards;
+  
+	  // Define a filter to use in the query
+	  let filter = {
+		_id: { $in: cardIds },
+		isDeleted: false, // Add this filter for the card's isDeleted status
+	  };
+  
+	  // If the user is not the owner and is a member of the workspace,
+	  // add an additional filter to only show lists the user is a member of
+	  if (!isOwner) {
+		filter.members = { $elemMatch: { user: userId } };
+	  }
+  
+	  // Get cards of the list based on the filter
+	  const cards = await cardModel.find(filter);
+  
+	  // Filter the activities of each card based on the 'isDeleted' status
+	  const deletedActivities = cards.map((card) => {
+		const filteredActivities = card.activities.filter((activity) => activity.isDeleted);
+		return { cardId: card._id, activities: filteredActivities };
+	  });
+  
+	  return callback(false, deletedActivities);
 	} catch (error) {
-		return callback({ errMessage: 'Something went wrong', details: error.message });
+	  return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
+  };
+  
+
+  
+  const getAllArchivesCards = async (workspaceId, boardId, listId, userId, callback) => {
+	try {
+	  // Get modals
+	  const workspace = await workspaceModel.findById(workspaceId);
+	  const board = await boardModel.findById(boardId);
+	  const list = await listModel.findById(listId);
+	  const user = await userModel.findById(userId);
+  console.log("mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm")
+	  // Check if the user is the owner of the workspace
+	  const isOwner = workspace.owner.equals(userId);
+  
+	  // Get cards' ids of the list
+	  const cardIds = list.cards;
+  
+	  // Define a filter to use in the query
+	  let filter = {
+		_id: { $in: cardIds },
+		isDeleted: true, // Add this filter for isDeleted status
+	  };
+  
+	  // If the user is not the owner and is a member of the workspace,
+	  // add an additional filter to only show lists the user is a member of
+	  if (!isOwner) {
+		filter.members = { $elemMatch: { user: userId } };
+	  }
+  
+	  // Get cards of the list based on the filter
+	  const cards = await cardModel.find(filter);
+  
+	  return callback(false, cards);
+	} catch (error) {
+	  return callback({ errMessage: 'Something went wrong', details: error.message });
+	}
+  };
+
+// const getAllCards = async ( workspaceId, boardId,listId, userId, callback) => {
+// 	try {
+// // Get  modals
+// 	  const workspace = await workspaceModel.findById(workspaceId);
+// 	   const board = await boardModel.findById(boardId);
+//        const list = await listModel.findById(listId);
+// 	  const user = await userModel.findById(userId);
+//  // Check if the user is the owner of the workspace
+// 	  console.log("workspace owner-> :",workspace.owner);
+// 	  console.log(" UserId-> :",userId);
+// 	  const isOwner = workspace.owner.equals(userId);
+//  // Get cards's ids of list
+// 	  const cardIds = list.cards;
+// 	  // Define a filter to use in the query
+// 	  let filter = { _id: { $in: cardIds}};
+//  // If the user is not the owner and is a member of the workspace,
+// 	  // add an additional filter to only show lists the user is a member of
+
+// 	  if (!isOwner) {
+// 		filter.members = { $elemMatch: { user: userId } };
+// 		console.log("userId->",userId)
+// 	  }
+// 	  console.log("filter Value:",filter);
+// 		 // Get cards of the list based on the filter
+// 	//   const cards = await cardModel.find(filter).populate({ path: 'cards' }).exec();
+// 	const cards = await cardModel.find(filter);
+	
+// 		return callback(false, cards);
+// 	} catch (error) {
+// 		return callback({ errMessage: 'Something went wrong', details: error.message });
+// 	}
+// };
+// const deleteById = async ( cardId, listId, boardId, workspaceId, user, callback) => {
+// 	try {
+// 		// Get models
+// 		const card = await cardModel.findById(cardId);
+// 		const list = await listModel.findById(listId);
+// 		const board = await boardModel.findById(boardId);
+// 		const workspace = await workspaceModel.findById(workspaceId);
+// 		// Validate owner
+// 		const validate = await helperMethods.validateCardOwners(card, list, board,workspace, user, false);
+// 		if (!validate) {
+// 			return callback({  errMessage: 'You dont have permission to access this card' });
+// 		}
+// 		 // Find the workspace object based on the matching workspaceId
+//  const cardAvalaible= list.cards.find(card => card.toString() === cardId);
+//   if (!cardAvalaible) {
+// 	 const errorMessage = 'card information is not correct or card not found';
+// 	 return callback({ errMessage: errorMessage });
+//  }
+// 		// Delete the card
+// 		const result = await cardModel.findByIdAndDelete(cardId);
+// 		// Delete the card from cards of list
+// 		list.cards = list.cards.filter((tempCard) => tempCard.toString() !== cardId);
+// 		await list.save();
+// 		// Add activity log to board
+// 		board.activity.unshift({
+// 			user: user._id,
+// 			name: user.name,
+// 			action: `deleted ${result.title} from ${list.title}`,
+// 			color: user.color,
+// 		});
+// 		await board.save();
+// 		return callback(false, { message: 'Success' });
+// 	} catch (error) {
+// 		return callback({ errMessage: 'Something went wrong', details: error.message });
+// 	}
+// };
+//for  card  Archives  
+const deleteById = async (cardId, listId, boardId, workspaceId, user, callback) => {
+  try {
+    // Get models
+    const card = await cardModel.findById(cardId);
+    const list = await listModel.findById(listId);
+    const board = await boardModel.findById(boardId);
+    const workspace = await workspaceModel.findById(workspaceId);
+    // Validate owner
+    const validate = await helperMethods.validateCardOwners(card, list, board, workspace, user, false);
+    if (!validate) {
+      return callback({ errMessage: 'You dont have permission to update this card' });
+    }
+    // Find the workspace object based on the matching workspaceId
+    const cardAvailable = list.cards.find((card) => card.toString() === cardId);
+    if (!cardAvailable) {
+      const errorMessage = 'card information is not correct or card not found';
+      return callback({ errMessage: errorMessage });
+    }
+    // Check if the card is already marked as deleted
+    if (card.isDeleted) {
+      // If isDeleted is true, delete the card from the database
+      await cardModel.findByIdAndDelete(cardId);
+      // Remove the card from the list
+      list.cards = list.cards.filter((tempCard) => tempCard.toString() !== cardId);
+      await list.save();
+      // Add activity log to the board
+      board.activity.unshift({
+        user: user._id,
+        name: user.name,
+        action: `deleted ${card.title} from ${list.title}`,
+        color: user.color,
+      });
+      await board.save();
+    } else {
+      // If isDeleted is false, update the status to true
+      card.isDeleted = true;
+      await card.save();
+    }
+    return callback(false, { message: 'Success' });
+  } catch (error) {
+    return callback({ errMessage: 'Something went wrong', details: error.message });
+  }
 };
+
 const update = async (cardId, listId, boardId, workspaceId, user, updatedObj, callback) => {
 	try {
 		// Get models
@@ -224,34 +422,80 @@ const updateComment = async (cardId, listId, boardId, commentId, workspaceId, us
 		return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
 };
-const deleteComment = async (cardId, listId, boardId, commentId, workspaceId,user, callback) => {
+// const deleteComment = async (cardId, listId, boardId, commentId, workspaceId,user, callback) => {
+// 	try {
+// 		// Get models
+// 		const card = await cardModel.findById(cardId);
+// 		const list = await listModel.findById(listId);
+// 		const board = await boardModel.findById(boardId);
+// 		const workspace = await workspaceModel.findById(workspaceId);
+// 		// Validate owner
+// 		const validate = await helperMethods.validateCardOwners(card, list, board,workspace, user, false);
+// 		if (!validate) {
+// 			return callback({  errMessage: 'You dont have permission to access this card' });
+// 		}
+// 		//Delete card
+// 		card.activities = card.activities.filter((activity) => activity._id.toString() !== commentId.toString());
+// 		await card.save();
+// 		//Add to board activity
+// 		board.activity.unshift({
+// 			user: user._id,
+// 			name: user.name,
+// 			action: `deleted his/her own comment from ${card.title}`,
+// 			color: user.color,
+// 		});
+// 		board.save();
+// 		return callback(false, { message: 'Success!' });
+// 	} catch (error) {
+// 		return callback({ errMessage: 'Something went wrong', details: error.message });
+// 	}
+// };
+
+const deleteComment = async (cardId, listId, boardId, commentId, workspaceId, user, callback) => {
 	try {
-		// Get models
-		const card = await cardModel.findById(cardId);
-		const list = await listModel.findById(listId);
-		const board = await boardModel.findById(boardId);
-		const workspace = await workspaceModel.findById(workspaceId);
-		// Validate owner
-		const validate = await helperMethods.validateCardOwners(card, list, board,workspace, user, false);
-		if (!validate) {
-			return callback({  errMessage: 'You dont have permission to access this card' });
-		}
-		//Delete card
-		card.activities = card.activities.filter((activity) => activity._id.toString() !== commentId.toString());
-		await card.save();
-		//Add to board activity
-		board.activity.unshift({
+	  // Get models
+	  const card = await cardModel.findById(cardId);
+	  const list = await listModel.findById(listId);
+	  const board = await boardModel.findById(boardId);
+	  const workspace = await workspaceModel.findById(workspaceId);
+  
+	  // Validate owner
+	  const validate = await helperMethods.validateCardOwners(card, list, board, workspace, user, false);
+	  if (!validate) {
+		return callback({ errMessage: 'You dont have permission to access this card' });
+	  }
+  
+	  // Find the comment in the card's activities
+	  const commentIndex = card.activities.findIndex((activity) => activity._id.toString() === commentId.toString());
+  
+	  if (commentIndex !== -1) {
+		// Check the current status of the comment
+		const isCommentDeleted = card.activities[commentIndex].isDeleted== false;
+  
+		// Update the comment's isDeleted status
+		card.activities[commentIndex].isDeleted = true;
+  
+		// If the comment was not deleted previously, add it to the board activity
+		if (!isCommentDeleted) {
+		  board.activity.unshift({
 			user: user._id,
 			name: user.name,
 			action: `deleted his/her own comment from ${card.title}`,
 			color: user.color,
-		});
-		board.save();
-		return callback(false, { message: 'Success!' });
+		  });
+		}
+  
+		await card.save();
+		await board.save();
+	  }
+  
+	  return callback(false, { message: 'Success!' });
 	} catch (error) {
-		return callback({ errMessage: 'Something went wrong', details: error.message });
+	  return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
-};
+  };
+  
+
 // const addMember = async (cardId, listId, boardId, workspaceId, user, memberId, callback) => {
 // 	try {
 // 		// Get models
@@ -855,6 +1099,7 @@ module.exports = {
 	update,
 	getCard,
 	getAllCards,
+	getAllArchivesCards,
 	addComment,
 	deleteById,
 	updateComment,
@@ -877,4 +1122,5 @@ module.exports = {
 	deleteAttachment,
 	updateAttachment,
 	updateCover,
+	getDeletedActivities
 };

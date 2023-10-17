@@ -12,10 +12,6 @@ const generateInvitationToken = (email) => {
   });
   return token.toString();
 };
-
-
-
-
 const verifyToken = async(req, res, next) => {
   try {
     if (!req.headers["authorization"])

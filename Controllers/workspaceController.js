@@ -21,6 +21,7 @@ const getWorkspaces= async (req, res) => {
 	});
 };
 const getWorkspace = async (req, res) => {
+	console.log("workspacccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc")
 	const { workspaceId } = req.params;
 	// Validate whether params.id is in the user's boards or not
 	const validate = req.user.workspaces.filter((workspace) => workspace === workspaceId);

@@ -21,10 +21,12 @@ router.post('/:workspaceId/:boardId/:listId/:cardId/create-label',   cardControl
 router.post('/:workspaceId/:boardId/:listId/:cardId/add-member',   cardController.addMember);
 router.delete('/:workspaceId/:boardId/:listId/:cardId/:memberId/delete-member',   cardController.deleteMember);
 router.post('/create',   cardController.create);
-router.get('/:workspaceId/:boardId/:listId/:cardId',   cardController.getCard);
-router.get('/:workspaceId/:boardId/:listId',   cardController.getAllCards);
+router.get('/:workspaceId/:boardId/:listId/:cardId/',cardController.getCard);
+router.get('/:workspaceId/:boardId/:listId/',cardController.getAllCards);
+router.get('/archives/:workspaceId/:boardId/:listId/archived-cards',cardController.getAllArchivesCards);
 router.put('/:workspaceId/:boardId/:listId/:cardId',   cardController.update);
 router.post('/:workspaceId/:boardId/:listId/:cardId/add-comment',   cardController.addComment);
 router.put('/:workspaceId/:boardId/:listId/:cardId/:commentId',  cardController.updateComment);
 router.delete('/:workspaceId/:boardId/:listId/:cardId/:commentId',  cardController.deleteComment);
+router.get('/archives/:workspaceId/:boardId/:listId/archived-comment',cardController.getDeletedActivities);
 module.exports = router;

@@ -126,6 +126,10 @@ const cardSchema = mongoose.Schema({
 				type: Boolean,
 				default: false,
 			},
+			isDeleted: {
+				type: Boolean,
+				default: false,
+			},
 			color: {
 				type: String,
 			},
@@ -163,6 +167,7 @@ const cardSchema = mongoose.Schema({
 						type: Boolean,
 						default: false,
 					},
+				
 				},
 			],
 		},
