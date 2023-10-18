@@ -52,7 +52,6 @@ const getCard = async ( workspaceId,cardId, listId, boardId, user, callback) => 
 		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
 		const validate = await helperMethods.validateCardOwners( card, list,  board,workspace , user, false);
-
 		if (!validate) {
 			return callback({  errMessage: 'You dont have permission to access this card' });
 		}
@@ -104,25 +103,20 @@ const getAllCards = async (workspaceId, boardId, listId, userId, callback) => {
 	  const board = await boardModel.findById(boardId);
 	  const list = await listModel.findById(listId);
 	  const user = await userModel.findById(userId);
-  
 	  // Check if the user is the owner of the workspace
 	  const isOwner = workspace.owner.equals(userId);
-  
 	  // Get cards' ids of the list
 	  const cardIds = list.cards;
-  
 	  // Define a filter to use in the query
 	  let filter = {
 		_id: { $in: cardIds },
 		isDeleted: false, // Add this filter for the card's isDeleted status
 	  };
-  
 	  // If the user is not the owner and is a member of the workspace,
 	  // add an additional filter to only show lists the user is a member of
 	  if (!isOwner) {
 		filter.members = { $elemMatch: { user: userId } };
 	  }
-  
 	  // Get cards of the list based on the filter
 	  const cards = await cardModel.find(filter);
   
@@ -551,12 +545,14 @@ const deleteComment = async (cardId, listId, boardId, commentId, workspaceId, us
   
 	  // Find the comment in the card's activities
 	  const commentIndex = card.activities.findIndex((activity) => activity._id.toString() === commentId.toString());
-  
+	  const RestoredComment = card.activities[commentIndex];
 	  if (commentIndex !== -1) {
 		// Check the current status of the comment
 		const isCommentDeleted = card.activities[commentIndex].isDeleted;
-  
+		
 		if (isCommentDeleted) {
+		
+
 		  // Revert the comment's isDeleted status to false
 		  card.activities[commentIndex].isDeleted = false;
   
@@ -570,7 +566,7 @@ const deleteComment = async (cardId, listId, boardId, commentId, workspaceId, us
 		return callback({ errMessage: 'Comment not found in card activities' });
 	  }
   
-	  return callback(false, { message: 'Success! Comment is undeleted.' });
+	  return callback(false, RestoredComment);
 	} catch (error) {
 	  return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
