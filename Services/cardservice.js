@@ -55,7 +55,15 @@ const getCard = async ( workspaceId,cardId, listId, boardId, user, callback) => 
 		if (!validate) {
 			return callback({  errMessage: 'You dont have permission to access this card' });
 		}
-		let returnObject = { ...card._doc, listTitle: list.title, listId: listId, boardId: boardId };
+		const filteredActivities = card._doc.activities.filter(activity => !activity.isDeleted);
+		// Create the returnObject with the filtered activities
+		let returnObject = {
+		  ...card._doc,
+		  activities: filteredActivities, // Replace activities with the filtered array
+		  listTitle: list.title,
+		  listId: listId,
+		  boardId: boardId,
+		};
 		return callback(false, returnObject);
 	} catch (error) {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
@@ -95,7 +103,6 @@ const getCard = async ( workspaceId,cardId, listId, boardId, user, callback) => 
 // 	  return callback({ errMessage: 'Something went wrong', details: error.message });
 // 	}
 //   };
-
 const getAllCards = async (workspaceId, boardId, listId, userId, callback) => {
 	try {
 	  // Get models
@@ -172,7 +179,6 @@ const getAllCards = async (workspaceId, boardId, listId, userId, callback) => {
 	  return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
   };
-  
   const getDeletedActivities = async (workspaceId, boardId, listId, userId, callback) => {
 	try {
 	  // Get models
@@ -180,40 +186,32 @@ const getAllCards = async (workspaceId, boardId, listId, userId, callback) => {
 	  const board = await boardModel.findById(boardId);
 	  const list = await listModel.findById(listId);
 	  const user = await userModel.findById(userId);
-  
 	  // Check if the user is the owner of the workspace
 	  const isOwner = workspace.owner.equals(userId);
-  
 	  // Get cards' ids of the list
 	  const cardIds = list.cards;
-  
 	  // Define a filter to use in the query
 	  let filter = {
 		_id: { $in: cardIds },
 		isDeleted: false, // Add this filter for the card's isDeleted status
 	  };
-  
 	  // If the user is not the owner and is a member of the workspace,
 	  // add an additional filter to only show lists the user is a member of
 	  if (!isOwner) {
 		filter.members = { $elemMatch: { user: userId } };
 	  }
-  
 	  // Get cards of the list based on the filter
 	  const cards = await cardModel.find(filter);
-  
 	  // Filter the activities of each card based on the 'isDeleted' status
 	  const deletedActivities = cards.map((card) => {
 		const filteredActivities = card.activities.filter((activity) => activity.isDeleted);
 		return { cardId: card._id, activities: filteredActivities };
 	  });
-  
 	  return callback(false, deletedActivities);
 	} catch (error) {
 	  return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
   };
-
   const getAllArchivesCards = async (workspaceId, boardId, listId, userId, callback) => {
 	try {
 	  // Get modals
@@ -221,7 +219,7 @@ const getAllCards = async (workspaceId, boardId, listId, userId, callback) => {
 	  const board = await boardModel.findById(boardId);
 	  const list = await listModel.findById(listId);
 	  const user = await userModel.findById(userId);
-  console.log("mmmmmmmmmmmmmmmmmmmmmmmmmmm")
+
 	  // Check if the user is the owner of the workspace
 	  const isOwner = workspace.owner.equals(userId);
   
@@ -233,16 +231,13 @@ const getAllCards = async (workspaceId, boardId, listId, userId, callback) => {
 		_id: { $in: cardIds },
 		isDeleted: true, // Add this filter for isDeleted status
 	  };
-  
 	  // If the user is not the owner and is a member of the workspace,
 	  // add an additional filter to only show lists the user is a member of
 	  if (!isOwner) {
 		filter.members = { $elemMatch: { user: userId } };
 	  }
-  
 	  // Get cards of the list based on the filter
 	  const cards = await cardModel.find(filter);
-  
 	  return callback(false, cards);
 	} catch (error) {
 	  return callback({ errMessage: 'Something went wrong', details: error.message });
@@ -361,7 +356,6 @@ const deleteById = async (cardId, listId, boardId, workspaceId, user, callback) 
     return callback({ errMessage: 'Something went wrong', details: error.message });
   }
 };
-
 const update = async (cardId, listId, boardId, workspaceId, user, updatedObj, callback) => {
 	try {
 		// Get models
