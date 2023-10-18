@@ -28,5 +28,6 @@ router.put('/:workspaceId/:boardId/:listId/:cardId',   cardController.update);
 router.post('/:workspaceId/:boardId/:listId/:cardId/add-comment',   cardController.addComment);
 router.put('/:workspaceId/:boardId/:listId/:cardId/:commentId',  cardController.updateComment);
 router.delete('/:workspaceId/:boardId/:listId/:cardId/:commentId',  cardController.deleteComment);
+router.put('/:workspaceId/:boardId/:listId/:cardId/:commentId/restoreComment',  cardController.undeleteComment);
 router.get('/archives/:workspaceId/:boardId/:listId/archived-comment',cardController.getDeletedActivities);
 module.exports = router;

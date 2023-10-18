@@ -130,6 +130,16 @@ const deleteComment = async (req, res) => {
 		return res.status(200).send(result);
 	});
 };
+const undeleteComment = async (req, res) => {
+	// Get params
+	const user = req.user;
+	const {  workspaceId,boardId, listId, cardId, commentId } = req.params;
+	// Call the card service
+	await cardService.undeleteComment(cardId, listId, boardId, commentId, workspaceId, user, (err, result) => {
+		if (err) return res.status(500).send(err);
+		return res.status(200).send(result);
+	});
+};
 const addMember = async (req, res) => {
 	// Get params
 	const user = req.user;
@@ -443,5 +453,6 @@ module.exports = {
 	deleteAttachment,
 	updateAttachment,
 	updateCover,
-	getDeletedActivities
+	getDeletedActivities,
+	undeleteComment
 };

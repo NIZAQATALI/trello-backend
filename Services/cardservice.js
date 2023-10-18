@@ -52,7 +52,7 @@ const getCard = async ( workspaceId,cardId, listId, boardId, user, callback) => 
 		const workspace = await workspaceModel.findById(workspaceId);
 		// Validate owner
 		const validate = await helperMethods.validateCardOwners( card, list,  board,workspace , user, false);
-		
+
 		if (!validate) {
 			return callback({  errMessage: 'You dont have permission to access this card' });
 		}
@@ -72,7 +72,7 @@ const getCard = async ( workspaceId,cardId, listId, boardId, user, callback) => 
   
 // 	  // Check if the user is the owner of the workspace
 // 	  const isOwner = workspace.owner.equals(userId);
-  
+
 // 	  // Get cards' ids of the list
 // 	  const cardIds = list.cards;
   
@@ -129,7 +129,9 @@ const getAllCards = async (workspaceId, boardId, listId, userId, callback) => {
 	  // Filter the activities of each card based on the 'isDeleted' status
 	  const filteredCards = cards.map((card) => {
 		const filteredActivities = card.activities.filter((activity) => !activity.isDeleted);
+		console.log("filteredActivities",filteredActivities);
 		return { ...card.toObject(), activities: filteredActivities };
+		
 	  });
 	  return callback(false, filteredCards);
 	} catch (error) {
@@ -137,6 +139,46 @@ const getAllCards = async (workspaceId, boardId, listId, userId, callback) => {
 	}
   };
 
+  const getDeletedCards = async (workspaceId, boardId, listId, userId, callback) => {
+	try {
+	  // Get models
+	  const workspace = await workspaceModel.findById(workspaceId);
+	  const board = await boardModel.findById(boardId);
+	  const list = await listModel.findById(listId);
+	  const user = await userModel.findById(userId);
+  
+	  // Check if the user is the owner of the workspace
+	  const isOwner = workspace.owner.equals(userId);
+  
+	  // Get cards' ids of the list
+	  const cardIds = list.cards;
+  
+	  // Define a filter to use in the query to find deleted cards (isDeleted: true)
+	  let filter = {
+		_id: { $in: cardIds },
+		isDeleted: true, // Filter for the card's isDeleted status set to true
+	  };
+  
+	  // If the user is not the owner and is a member of the workspace,
+	  // add an additional filter to only show lists the user is a member of
+	  if (!isOwner) {
+		filter.members = { $elemMatch: { user: userId } };
+	  }
+	  // Get deleted cards of the list based on the filter
+	  const deletedCards = await cardModel.find(filter);
+  
+	  // Filter the activities of each deleted card based on the 'isDeleted' status
+	  const filteredDeletedCards = deletedCards.map((card) => {
+		const filteredActivities = card.activities.filter((activity) => activity.isDeleted);
+		return { ...card.toObject(), activities: filteredActivities };
+	  });
+  
+	  return callback(false, filteredDeletedCards);
+	} catch (error) {
+	  return callback({ errMessage: 'Something went wrong', details: error.message });
+	}
+  };
+  
   const getDeletedActivities = async (workspaceId, boardId, listId, userId, callback) => {
 	try {
 	  // Get models
@@ -177,9 +219,7 @@ const getAllCards = async (workspaceId, boardId, listId, userId, callback) => {
 	  return callback({ errMessage: 'Something went wrong', details: error.message });
 	}
   };
-  
 
-  
   const getAllArchivesCards = async (workspaceId, boardId, listId, userId, callback) => {
 	try {
 	  // Get modals
@@ -187,7 +227,7 @@ const getAllCards = async (workspaceId, boardId, listId, userId, callback) => {
 	  const board = await boardModel.findById(boardId);
 	  const list = await listModel.findById(listId);
 	  const user = await userModel.findById(userId);
-  console.log("mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm")
+  console.log("mmmmmmmmmmmmmmmmmmmmmmmmmmm")
 	  // Check if the user is the owner of the workspace
 	  const isOwner = workspace.owner.equals(userId);
   
@@ -495,7 +535,47 @@ const deleteComment = async (cardId, listId, boardId, commentId, workspaceId, us
 	}
   };
   
-
+  const undeleteComment = async (cardId, listId, boardId, commentId, workspaceId, user, callback) => {
+	try {
+	  // Get models
+	  const card = await cardModel.findById(cardId);
+	  const list = await listModel.findById(listId);
+	  const board = await boardModel.findById(boardId);
+	  const workspace = await workspaceModel.findById(workspaceId);
+  
+	  // Validate owner
+	  const validate = await helperMethods.validateCardOwners(card, list, board, workspace, user, false);
+	  if (!validate) {
+		return callback({ errMessage: 'You don\'t have permission to access this card' });
+	  }
+  
+	  // Find the comment in the card's activities
+	  const commentIndex = card.activities.findIndex((activity) => activity._id.toString() === commentId.toString());
+  
+	  if (commentIndex !== -1) {
+		// Check the current status of the comment
+		const isCommentDeleted = card.activities[commentIndex].isDeleted;
+  
+		if (isCommentDeleted) {
+		  // Revert the comment's isDeleted status to false
+		  card.activities[commentIndex].isDeleted = false;
+  
+		  // You may add additional actions or logging here if needed
+  
+		  await card.save();
+		} else {
+		  return callback({ errMessage: 'Comment is already undeleted' });
+		}
+	  } else {
+		return callback({ errMessage: 'Comment not found in card activities' });
+	  }
+  
+	  return callback(false, { message: 'Success! Comment is undeleted.' });
+	} catch (error) {
+	  return callback({ errMessage: 'Something went wrong', details: error.message });
+	}
+  };
+  
 // const addMember = async (cardId, listId, boardId, workspaceId, user, memberId, callback) => {
 // 	try {
 // 		// Get models
@@ -1002,7 +1082,6 @@ const addAttachment = async (cardId, listId, boardId, workspaceId, user, link, n
 			color: user.color,
 		});
 		board.save();
-
 		return callback(false, { attachmentId: card.attachments[card.attachments.length - 1]._id.toString() });
 	} catch (error) {
 		return callback({ errMessage: 'Something went wrong', details: error.message });
@@ -1122,5 +1201,8 @@ module.exports = {
 	deleteAttachment,
 	updateAttachment,
 	updateCover,
-	getDeletedActivities
+	getDeletedActivities,
+	getDeletedCards,
+	undeleteComment
+
 };
